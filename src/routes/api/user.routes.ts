@@ -7,6 +7,6 @@ router.get('/token', generateTokenAndSendEmail);
 
 router.post('', create);
 
-router.put('/:user_id', editPassword);
+router.put('/password/:user_id', editPassword);
 
 export default router;
