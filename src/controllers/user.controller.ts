@@ -45,7 +45,7 @@ export const generateTokenAndSendEmail = (req: Request, res: Response): any => {
             `
         });
     })();
-    return res.send(token);
+    return res.send({ token });
 };
 
 export const create = async (req: Request, res: Response): Promise<any> => {
