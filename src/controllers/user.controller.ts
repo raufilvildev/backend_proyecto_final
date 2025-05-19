@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
-import { insert, updatePassword } from '../models/user.model';
+import { deleteUser, insert, updatePassword } from '../models/user.model';
 
 dotenv.config();
 const { SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS } = process.env;
@@ -45,19 +45,28 @@ export const generateTokenAndSendEmail = (req: Request, res: Response): any => {
             `
         });
     })();
-    return res.send({ token });
+    return res.json({ token });
 };
 
 export const create = async (req: Request, res: Response): Promise<any> => {
+    const tokenGenerationResult = await generateTokenAndSendEmail(req,res);
+    const token = tokenGenerationResult.token;
+    req.body.token = token;
     const result = await insert(req.body);
     req.body.id = result.insertId;
     const user = req.body;
-    return res.json({user, result});
+    return res.json({user, insert_response: result});
 }
 
 export const editPassword = async (req: Request, res: Response): Promise<any> => {
     const { user_id } = req.params;
     const { password } = req.body;
     const result = await updatePassword(user_id, password);
+    return res.json(result);
+}
+
+export const remove = async (req: Request, res: Response): Promise<any> => {
+    const user_id = req.params;
+    const result = await deleteUser(Number(user_id));
     return res.json(result);
 }
