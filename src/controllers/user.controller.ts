@@ -66,7 +66,7 @@ export const editPassword = async (req: Request, res: Response): Promise<any> =>
 }
 
 export const remove = async (req: Request, res: Response): Promise<any> => {
-    const user_id = req.params;
+    const { user_id } = req.params;
     const result = await deleteUser(Number(user_id));
     return res.json(result);
 }

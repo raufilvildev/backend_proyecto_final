@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { generateTokenAndSendEmail, create, editPassword } from '../../controllers/user.controller';
-import { deleteUser } from '../../models/user.model';
+import { create, editPassword, remove } from '../../controllers/user.controller';
 
 const router = Router();
 
@@ -8,6 +7,6 @@ router.post('', create);
 
 router.put('/password/:user_id', editPassword);
 
-router.delete('/:user_id', deleteUser);
+router.delete('/:user_id', remove);
 
 export default router;

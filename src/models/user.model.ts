@@ -18,5 +18,5 @@ export const updatePassword = async (user_email: string, password: string) => {
 
 export const deleteUser = async (user_id: number) => {
     const [ result ] = await db.query('DELETE FROM user WHERE id = ?', [ user_id ]);
-    result;
+    return result;
 }
