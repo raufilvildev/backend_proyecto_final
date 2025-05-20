@@ -7,7 +7,7 @@ dotenv.config();
 const { SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS } = process.env;
 
 export const selectById = async (user_id: number): Promise<any> => {
-    const [ result ] = await db.query('SELECT name, birth_date, gender, phone, email, username FROM user WHERE id = ?', [ user_id ]);
+    const [ result ] = await db.query('SELECT id, name, birth_date, gender, phone, email, username FROM user WHERE id = ?', [ user_id ]);
     return result;
 }
 
