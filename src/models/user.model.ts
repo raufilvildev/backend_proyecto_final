@@ -40,7 +40,7 @@ export const resetToken = async (user_id: number): Promise<any> => {
 export const updateConfirmEmail = async (token_input: string, user_id: number): Promise<any> => {
     const [ selectTokenResult ] = await selectToken(user_id);
     const token = selectTokenResult.token;
-    if (token !== Number(token_input)) {
+    if (token !== token_input) {
         return { error: "Incorrect token." }
     }
     const [ result ] = await db.query('UPDATE user SET token = ?, is_confirmed_email = ?', [ '', 1 ]);
