@@ -11,6 +11,11 @@ export const selectById = async (user_id: number): Promise<any> => {
     return result;
 }
 
+export const selectIsConfirmedEmailById = async (user_id: number): Promise<any> => {
+    const [ result ] = await db.query('SELECT is_confirmed_email FROM user WHERE id = ?', [ user_id ]);
+    return result;
+}
+
 export const selectToken = async (user_id: number): Promise<any> => {
     const [ result ] = await db.query('SELECT token FROM user WHERE id = ?', [ user_id ]);
     return result;

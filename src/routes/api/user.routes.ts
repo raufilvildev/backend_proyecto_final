@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { create, editPassword, removeToken, editToken, getById, remove, editConfirmEmail } from '../../controllers/user.controller';
+import { getById, getIsConfirmedEmailById, create, editPassword, removeToken, editToken, remove, editConfirmEmail } from '../../controllers/user.controller';
 
 const router = Router();
 
 router.get('/:user_id', getById);
+router.get('/confirm_email/:user_id', getIsConfirmedEmailById);
 
 router.post('', create);
 

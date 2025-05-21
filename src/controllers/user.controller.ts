@@ -1,9 +1,15 @@
 import { Request, Response } from 'express';
-import { selectById, insert, sendTokenEmail, updateToken, resetToken, updateConfirmEmail, updatePassword, deleteUser } from '../models/user.model';
+import { selectById, selectIsConfirmedEmailById, insert, sendTokenEmail, updateToken, resetToken, updateConfirmEmail, updatePassword, deleteUser } from '../models/user.model';
 
 export const getById = async (req: Request, res: Response): Promise<any> => {
     const { user_id } = req.params;
     const [ result ] = await selectById(Number(user_id));
+    return res.json(result);
+}
+
+export const getIsConfirmedEmailById = async (req: Request, res: Response): Promise<any> => {
+    const { user_id } = req.params;
+    const [ result ] = await selectIsConfirmedEmailById(Number(user_id));
     return res.json(result);
 }
 
