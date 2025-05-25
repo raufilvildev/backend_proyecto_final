@@ -56,13 +56,13 @@ export const resetToken = async (user_id: number): Promise<any> => {
 }
 
 export const updateConfirmEmail = async (token_input: string, user_id: number): Promise<any> => {
-    const token = await selectToken(user_id);
+    const resultSelectToken = await selectToken(user_id);
     
-    if (token.error) {
-        return token;
+    if (resultSelectToken.error) {
+        return resultSelectToken;
     }
 
-    if (token !== token_input) {
+    if (resultSelectToken.token !== token_input) {
         return { error: "Incorrect token." }
     }
 

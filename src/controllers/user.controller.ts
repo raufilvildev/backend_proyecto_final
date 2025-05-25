@@ -44,7 +44,7 @@ export const editToken = async (req: Request, res: Response): Promise<any> => {
     await User.sendTokenEmail(token, email);
     const result = await User.updateToken(token, Number(user_id));
     return res.json(result);
-};
+}
 
 export const removeToken = async (req: Request, res: Response): Promise<any> => {
     const { user_id } = req.params;
