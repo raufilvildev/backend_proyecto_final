@@ -1,34 +1,47 @@
 import db from '../config/db.config';
-
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 const { SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS } = process.env;
 
 export const selectById = async (user_id: number): Promise<any> => {
     const [ result ] = await db.query('SELECT id, name, birth_date, gender, phone, email, username FROM user WHERE id = ?', [ user_id ]);
-    return result;
+    const user = result as any[];
+    if (user.length === 0) {
+        return { error: "User not found." }
+    }
+    return user[0];
 }
 
 export const selectIsConfirmedEmailById = async (user_id: number): Promise<any> => {
     const [ result ] = await db.query('SELECT is_confirmed_email FROM user WHERE id = ?', [ user_id ]);
-    return result;
+    const is_confirmed_email = result as any[];
+    if (is_confirmed_email.length === 0) {
+        return { error: "User not found." }
+    }
+    return is_confirmed_email[0];
 }
 
 export const selectToken = async (user_id: number): Promise<any> => {
     const [ result ] = await db.query('SELECT token FROM user WHERE id = ?', [ user_id ]);
-    return result;
+    const token = result as any[];
+    if (token.length === 0) {
+        return { error: "User not found." }
+    }
+    return token[0];
 }
 
 export const insert = async ({ name, birth_date, gender, phone, email, username, password }: any): Promise<any> => {
     const created_at = new Date();
     const updated_at = created_at;
+
     const [ result ] = await db.query(`
         INSERT INTO user (name, birth_date, gender, phone, email, username, password, created_at, updated_at) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `
-    , [ name, birth_date, gender, phone, email, username, password, created_at, updated_at ]);
+    , [ name, birth_date, gender, phone, email, username, bcrypt.hashSync(password,8), created_at, updated_at ]);
     return result;
 }
 
@@ -43,11 +56,16 @@ export const resetToken = async (user_id: number): Promise<any> => {
 }
 
 export const updateConfirmEmail = async (token_input: string, user_id: number): Promise<any> => {
-    const [ selectTokenResult ] = await selectToken(user_id);
-    const token = selectTokenResult.token;
+    const token = await selectToken(user_id);
+    
+    if (token.error) {
+        return token;
+    }
+
     if (token !== token_input) {
         return { error: "Incorrect token." }
     }
+
     const [ result ] = await db.query('UPDATE user SET token = ?, is_confirmed_email = ?', [ '', 1 ]);
     return result
 }
