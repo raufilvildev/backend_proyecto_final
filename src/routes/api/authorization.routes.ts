@@ -1,19 +1,19 @@
 import { Router } from "express";
 import {
-	checkToken,
 	requestConfirmationByEmail,
 	resetRandomNumber,
 	checkRandomNumberInput,
-  login,
+  returnToken,
 } from "../../controllers/authorization.controller";
+import { checkToken } from "../../middlewares/authorization.middleware";
+import { checkUserExists } from "../../middlewares/user.middleware";
 
 const router = Router();
 
-router.get("", checkToken);
+router.post("/email_confirmation/request/:type", checkToken, requestConfirmationByEmail);
+router.post("/email_confirmation", checkToken, checkRandomNumberInput);
+router.post("/check_email", checkUserExists(["email"], true), returnToken);
 
-router.post("/request/email_confirmation", requestConfirmationByEmail);
-router.post("/email_confirmation", checkRandomNumberInput);
-router.post("/login", login);
-router.patch("/email_confirmation", resetRandomNumber);
+router.patch("/reset/random_number", resetRandomNumber);
 
 export default router;

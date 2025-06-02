@@ -1,16 +1,12 @@
 import type { RequestHandler } from "express";
 import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
-import type { JwtPayload } from "jsonwebtoken";
-import User, { selectBy, selectPasswordById } from "../models/user.model";
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import fs from "node:fs/promises";
 import path from "node:path";
-import Authentication from "../models/authorization.model";
-import bcrypt from "bcryptjs";
+import Authorization from "../models/authorization.model";
+import User from "../models/user.model";
 import { generateToken } from "../utils/authorization.util";
-import type { IUser } from "../interfaces/iuser.interface";
 
 dotenv.config();
 
@@ -20,42 +16,22 @@ if (!PRIVATE_KEY) {
 	throw new Error("PRIVATE_KEY not defined in .env");
 }
 
-export const checkToken: RequestHandler = async (req, res) => {
-	const token = req.headers.authorization;
-	const INVALID_TOKEN_MESSAGE = "Token de autenticación inválido";
-
-	if (!token) {
-		res.status(401).json(INVALID_TOKEN_MESSAGE);
-		return;
-	}
-	try {
-		const payload = jwt.verify(token, PRIVATE_KEY as string) as JwtPayload;
-		const { user_id, email_confirmed } = payload;
-
-		const result = await User.selectBy("id", user_id);
-		if (result.length === 0) {
-			res.status(401).json(INVALID_TOKEN_MESSAGE);
-			return;
-		}
-		res.status(200).json({ user_id, email_confirmed });
-		return;
-	} catch (error) {
-		res.status(401).json(INVALID_TOKEN_MESSAGE);
-		return;
-	}
-};
+const GENERAL_SERVER_ERROR_MESSAGE = "Ha ocurrido un error inesperado. Vuelva a intentarlo más tarde."
 
 export const checkRandomNumberInput: RequestHandler = async (req, res) => {
-	const { user_id, random_number_input } = req.body;
 
+	const { user_id, random_number_input } = req.body;
+  
 	try {
-		const resultSelectRandomNumberById =
-			await Authentication.selectRandomNumberById(user_id);
-		if (
-			Array.isArray(resultSelectRandomNumberById) &&
-			resultSelectRandomNumberById.length === 0
-		) {
-			res.status(404).json("User not found.");
+		const resultSelectRandomNumberById = await Authorization.selectRandomNumberById(user_id);
+    
+    if (!Array.isArray(resultSelectRandomNumberById)) {
+      res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
+      return;
+    }
+
+		if (resultSelectRandomNumberById.length === 0) {
+			res.status(404).json("No existe ningún usuario con ese identificador.");
 			return;
 		}
 
@@ -65,7 +41,7 @@ export const checkRandomNumberInput: RequestHandler = async (req, res) => {
 			res.status(401).json("El código introducido es incorrecto.");
 			return;
 		}
-
+    
 		await User.updateEmailConfirmedById(user_id);
 		await User.updateRandomNumber(user_id, "");
 
@@ -73,35 +49,27 @@ export const checkRandomNumberInput: RequestHandler = async (req, res) => {
 
 		res.json({ token });
 	} catch (error) {
-		res
-			.status(500)
-			.json("Ha ocurrido un error inesperado. Vuelve a intentarlo más tarde.");
+		res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
+    return;
 	}
 };
 
 export const requestConfirmationByEmail: RequestHandler = async (req, res) => {
-	const { user_id, type } = req.body;
+
+  const { type } = req.params;
+
+	const { user_id, email } = req.body;
 
 	if (!["signup", "change_password"].includes(type)) {
-		res.status(401).json("Unknown request to confirm by email.");
+		res.status(401).json("El parámetro type solo puede tomar los valores 'signup' o 'change_password'.");
 		return;
 	}
 
-	const result = await User.selectBy("id", user_id);
+  try {
 
-	if (result.length === 0) {
-		res.status(404).json("User not found.");
-		return;
-	}
+		const random_number: string = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
 
-	const { email } = result[0];
-
-	try {
-		const random_number: string = String(
-			Math.floor(Math.random() * 1000000),
-		).padStart(6, "0");
-
-		const result = await User.updateRandomNumber(user_id, random_number);
+		await User.updateRandomNumber(user_id, random_number);
 
 		const options: SMTPTransport.Options = {
 			host: SMTP_HOST as string,
@@ -126,61 +94,27 @@ export const requestConfirmationByEmail: RequestHandler = async (req, res) => {
 			subject: "XXX - Confirmación por correo electrónico",
 			html: html,
 		});
+
 		res.status(200).json({ message: "Correo enviado correctamente." });
 	} catch (error) {
-		res
-			.status(500)
-			.json("Ha ocurrido un error inesperado. Vuelve a intentarlo más tarde.");
+		res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
 	}
 };
 
 export const resetRandomNumber: RequestHandler = async (req, res) => {
 	const { user_id } = req.body;
 	try {
-		const result = await User.updateRandomNumber(user_id, "");
-		res.json(result);
+		await User.updateRandomNumber(user_id, "");
+		res.json({ message: "El código ha sido reseteado correctamente."});
 	} catch (error) {
 		res
 			.status(500)
-			.json("Ha ocurrido un error inesperado. Vuelve a intentarlo más tarde.");
-	}
-};
-
-export const login: RequestHandler = async (req, res) => {
-	const INVALID_LOGIN_MESSAGE = "El usuario o la contraseña no son correctos.";
-
-	const { username, password } = req.body;
-
-	try {
-		const result = await User.selectBy("username", username);
-
-		if (result.length === 0) {
-			res.status(404).json(INVALID_LOGIN_MESSAGE);
-			return;
-		}
-
-		const user_id: number = result[0].id as number;
-		const [resultSelectPasswordById]: { password: string }[] =
-			await selectPasswordById(user_id);
-
-		if (!bcrypt.compareSync(password, resultSelectPasswordById.password)) {
-			res.status(401).json(INVALID_LOGIN_MESSAGE);
-			return;
-		}
-
-		const [user]: IUser[] = await selectBy("id", user_id);
-		const { email_confirmed } = user;
-		const token = generateToken({ user_id, email_confirmed });
-
-		res.json({ token });
-	} catch (error) {
-		res
-			.status(500)
-			.json("Ha ocurrido un error inesperado. Vuelve a intentarlo más tarde.");
+			.json(GENERAL_SERVER_ERROR_MESSAGE);
 	}
 };
 
 export const returnToken: RequestHandler = async (req, res) => {
-	const token = generateToken(req.body);
+	const { user_id, email_confirmed } = req.body;
+  const token = generateToken({ user_id, email_confirmed });
 	res.json({ token });
 };

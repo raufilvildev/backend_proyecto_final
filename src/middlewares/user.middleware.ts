@@ -1,38 +1,55 @@
-import type { RequestHandler } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import User from "../models/user.model";
 
-export const checkUserExists: RequestHandler = async (req, res, next) => {
-	const { email, username } = req.body;
+const paramsDictionary: Record<string, string> = {
+  id: "id",
+  username: "nombre de usuario",
+  email: "correo electrónico"
+}
 
-	let result = await User.selectBy("email", email);
+const GENERAL_SERVER_ERROR_MESSAGE = "Ha ocurrido un error inesperado. Vuelve a intentarlo más tarde.";
 
-	if (Array.isArray(result) && result.length > 0) {
-		res.status(409).json("Ya existe un usuario con ese correo electrónico.");
-		return;
-	}
+export const checkUserExists = (params: string[], positiveAnswer: boolean = false) => {
+  if (!Array.isArray(params) || params.length === 0) {
+    throw new Error("params must be a non-empty array.");
+  }
 
-	result = await User.selectBy("username", username);
-	if (Array.isArray(result) && result.length > 0) {
-		res.status(409).json("Ya existe un usuario con ese nombre de usuario.");
-		return;
-	}
+  if (params.some(param => !["id", "email", "username"].includes(param))) {
+    throw new Error("id, email and username are the only allowed parameters.");
+  }
+  
+  return async (req: Request,res: Response,next: NextFunction) => {
+    
+    let result;
+    for (const param of params) {
+      try {
+        result = await User.selectBy(param, req.body[param]);
 
-	next();
-};
+      if (!Array.isArray(result)) {
+        res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
+        return
+      }
 
-export const checkEmailExists: RequestHandler = async (req, res, next) => {
-	const { email } = req.body;
+      if (!positiveAnswer && result.length > 0) {
+        res.status(409).json(`Ya existe un usuario registrado con ese ${paramsDictionary[param]}.`);
+        return;
+      }
 
-	const result = await User.selectBy("email", email);
+      if (positiveAnswer && result.length === 0) {
+        res.status(404).json(`No existe ningún usuario registrado con ese ${paramsDictionary[param]}.`);
+        return;
+      }
+      } catch (error) {
+        res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
+        return;
+      }
+      
+    }
 
-	if (Array.isArray(result) && result.length === 0) {
-		res
-			.status(404)
-			.json("No existe ningún usuario registrado con ese correo electrónico.");
-		return;
-	}
+    if (positiveAnswer) {
+      req.body = result;
+    }
 
-	const { id, email_confirmed } = result[0];
-	req.body = { user_id: id, email, email_confirmed };
-	next();
-};
+    next();
+  }
+}

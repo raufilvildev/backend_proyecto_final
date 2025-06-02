@@ -5,12 +5,14 @@ import bcrypt from "bcryptjs";
 import type { ResultSetHeader } from "mysql2";
 import { generateToken } from "../utils/authorization.util";
 
+const GENERAL_SERVER_ERROR_MESSAGE = "Ha ocurrido un error inesperado. Vuelve a intentarlo más tarde.";
+
 export const selectBy = async (
 	field: string,
 	value: string | number,
 ): Promise<IUser[]> => {
 	if (!["id", "email", "username"].includes(field)) {
-		throw new Error("Invalid field for user lookup.");
+		throw new Error("Los campos de búsqueda permitidos son id, email y username.");
 	}
 
 	const [result] = await db.query(
@@ -30,54 +32,29 @@ export const selectPasswordById = async (
 	return result as { password: string }[];
 };
 
-export const insert = async ({
-	first_name,
-	last_name,
-	gender,
-	birth_date,
-	email,
-	username,
-	password,
-}: IUser) => {
+export const insert = async ({ first_name, last_name, gender, birth_date, email, username, password }: IUser) => {
 	const created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
 	const updated_at = created_at;
+
 	try {
 		const result = await db.query(
 			`
     INSERT INTO user (first_name, last_name, gender, birth_date, email, username, password, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			[
-				first_name,
-				last_name,
-				gender,
-				birth_date,
-				email,
-				username,
-				bcrypt.hashSync(password as string, 8),
-				created_at,
-				updated_at,
-			],
+			[ first_name, last_name, gender, birth_date, email, username, bcrypt.hashSync(password as string, 8), created_at, updated_at ],
 		);
 
-		if (
-			!Array.isArray(result) ||
-			typeof result[0] !== "object" ||
-			!("insertId" in result[0])
-		) {
-			throw new Error("Unexpected result from database insert.");
+		if (!Array.isArray(result) || !result[0]) {
+      throw new Error(GENERAL_SERVER_ERROR_MESSAGE);
 		}
 
 		const insertResult = result[0] as ResultSetHeader;
 		const user_id = insertResult.insertId;
-		const token = generateToken({
-			user_id,
-			email_confirmed: 0,
-		});
+		const token = generateToken({ user_id, email_confirmed: 0 });
+
 		return { token };
-	} catch (error) {
-		return {
-			error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
-		};
+	} catch (error:any) {
+		throw new Error(error);
 	}
 };
 
@@ -120,7 +97,7 @@ export const updateEmailConfirmedById = async (user_id: number) => {
 
 export const updatePassword = async (user_id: number, password: string) => {
 	try {
-		const result = await db.query(
+		await db.query(
 			"UPDATE user SET password = ?, updated_at = ? WHERE id = ?",
 			[
 				bcrypt.hashSync(password, 8),
@@ -128,10 +105,6 @@ export const updatePassword = async (user_id: number, password: string) => {
 				user_id,
 			],
 		);
-
-		if (!Array.isArray(result) || typeof result[0] !== "object") {
-			throw new Error("Unexpected result from database insert.");
-		}
 
 		const [user] = await selectBy("id", user_id);
 		const { email_confirmed } = user;
@@ -142,6 +115,7 @@ export const updatePassword = async (user_id: number, password: string) => {
 		});
 		return { token };
 	} catch (error) {
+    console.log(error);
 		return {
 			error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
 		};

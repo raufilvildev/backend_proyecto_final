@@ -3,20 +3,20 @@ import {
 	getById,
 	create,
 	changePassword,
+  login,
 } from "../../controllers/user.controller";
 import {
-	checkEmailExists,
 	checkUserExists,
 } from "../../middlewares/user.middleware";
-import { returnToken } from "../../controllers/authorization.controller";
-import { checkAuthorization } from "../../middlewares/authorization.middleware";
+import { checkToken } from "../../middlewares/authorization.middleware";
 
 const router = Router();
 
-router.get("/:user_id", getById);
+router.get("", checkToken, getById);
 
-router.post("", checkUserExists, create);
-router.post("/email", checkEmailExists, returnToken);
+router.post("/signup", checkUserExists(["email", "username"]), create);
+router.post("/login", login);
 
-router.patch("/change_password", checkAuthorization, changePassword);
+router.patch("/login/change_password", checkToken, changePassword);
+
 export default router;
