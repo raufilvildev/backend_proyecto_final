@@ -1,9 +1,10 @@
-import { Router } from 'express';
+import { Router } from "express";
+import userRoutes from "./api/user.routes";
+import authorizationRoutes from "./api/authorization.routes";
 
 const router = Router();
 
-import userRoutes from './api/user.routes';
-
-router.use('/user', userRoutes);
+router.use("/user", userRoutes);
+router.use("/authorization", authorizationRoutes);
 
 export default router;

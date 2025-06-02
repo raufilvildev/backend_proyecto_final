@@ -1,116 +1,159 @@
-import db from '../config/db.config';
-import dotenv from 'dotenv';
-import nodemailer from 'nodemailer';
-import bcrypt from 'bcryptjs';
+import db from "../config/db.config";
+import type { IUser } from "../interfaces/iuser.interface";
+import dayjs from "dayjs";
+import bcrypt from "bcryptjs";
+import type { ResultSetHeader } from "mysql2";
+import { generateToken } from "../utils/authorization.util";
 
-dotenv.config();
-const { SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS } = process.env;
+export const selectBy = async (
+	field: string,
+	value: string | number,
+): Promise<IUser[]> => {
+	if (!["id", "email", "username"].includes(field)) {
+		throw new Error("Invalid field for user lookup.");
+	}
 
-export const selectById = async (user_id: number): Promise<any> => {
-    const [ result ] = await db.query('SELECT id, name, birth_date, gender, phone, email, username FROM user WHERE id = ?', [ user_id ]);
-    const user = result as any[];
-    if (user.length === 0) {
-        return { error: "User not found." }
-    }
-    return user[0];
-}
+	const [result] = await db.query(
+		`SELECT id, first_name, last_name, gender, birth_date, gender, email, username, email_confirmed FROM user WHERE ${field} = ?`,
+		[value],
+	);
 
-export const selectIsConfirmedEmailById = async (user_id: number): Promise<any> => {
-    const [ result ] = await db.query('SELECT is_confirmed_email FROM user WHERE id = ?', [ user_id ]);
-    const is_confirmed_email = result as any[];
-    if (is_confirmed_email.length === 0) {
-        return { error: "User not found." }
-    }
-    return is_confirmed_email[0];
-}
+	return result as IUser[];
+};
 
-export const selectToken = async (user_id: number): Promise<any> => {
-    const [ result ] = await db.query('SELECT token FROM user WHERE id = ?', [ user_id ]);
-    const token = result as any[];
-    if (token.length === 0) {
-        return { error: "User not found." }
-    }
-    return token[0];
-}
+export const selectPasswordById = async (
+	user_id: number,
+): Promise<{ password: string }[]> => {
+	const [result] = await db.query("SELECT password FROM user WHERE id = ?", [
+		user_id,
+	]);
+	return result as { password: string }[];
+};
 
-export const insert = async ({ name, birth_date, gender, phone, email, username, password }: any): Promise<any> => {
-    const created_at = new Date();
-    const updated_at = created_at;
+export const insert = async ({
+	first_name,
+	last_name,
+	gender,
+	birth_date,
+	email,
+	username,
+	password,
+}: IUser) => {
+	const created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
+	const updated_at = created_at;
+	try {
+		const result = await db.query(
+			`
+    INSERT INTO user (first_name, last_name, gender, birth_date, email, username, password, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			[
+				first_name,
+				last_name,
+				gender,
+				birth_date,
+				email,
+				username,
+				bcrypt.hashSync(password as string, 8),
+				created_at,
+				updated_at,
+			],
+		);
 
-    const [ result ] = await db.query(`
-        INSERT INTO user (name, birth_date, gender, phone, email, username, password, created_at, updated_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `
-    , [ name, birth_date, gender, phone, email, username, bcrypt.hashSync(password,8), created_at, updated_at ]);
-    return result;
-}
+		if (
+			!Array.isArray(result) ||
+			typeof result[0] !== "object" ||
+			!("insertId" in result[0])
+		) {
+			throw new Error("Unexpected result from database insert.");
+		}
 
-export const updateToken = async (token: string, user_id: number): Promise<any> => {
-    const [ result ] = await db.query('UPDATE user SET token = ? WHERE id = ?', [ token, user_id ])
-    return result;
-}
+		const insertResult = result[0] as ResultSetHeader;
+		const user_id = insertResult.insertId;
+		const token = generateToken({
+			user_id,
+			email_confirmed: 0,
+		});
+		return { token };
+	} catch (error) {
+		return {
+			error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
+		};
+	}
+};
 
-export const resetToken = async (user_id: number): Promise<any> => {
-    const [ result ] = await db.query('UPDATE user SET token = ? WHERE id = ?', [ '', user_id ]);
-    return result;
-}
+export const updateRandomNumber = async (
+	user_id: number,
+	random_number: string,
+) => {
+	try {
+		const [result] = await db.query(
+			`
+    UPDATE user 
+    SET random_number = ? WHERE id = ?
+    `,
+			[random_number, user_id],
+		);
+		return result;
+	} catch (error) {
+		return {
+			error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
+		};
+	}
+};
 
-export const updateConfirmEmail = async (token_input: string, user_id: number): Promise<any> => {
-    const resultSelectToken = await selectToken(user_id);
-    
-    if (resultSelectToken.error) {
-        return resultSelectToken;
-    }
+export const updateEmailConfirmedById = async (user_id: number) => {
+	try {
+		const [result] = await db.query(
+			`
+    UPDATE user 
+    SET email_confirmed = ? WHERE id = ?
+    `,
+			[1, user_id],
+		);
+		return result;
+	} catch (error) {
+		return {
+			error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
+		};
+	}
+};
 
-    if (resultSelectToken.token !== token_input) {
-        return { error: "Incorrect token." }
-    }
+export const updatePassword = async (user_id: number, password: string) => {
+	try {
+		const result = await db.query(
+			"UPDATE user SET password = ?, updated_at = ? WHERE id = ?",
+			[
+				bcrypt.hashSync(password, 8),
+				dayjs().format("YYYY-MM-DD HH:mm:ss"),
+				user_id,
+			],
+		);
 
-    const [ result ] = await db.query('UPDATE user SET token = ?, is_confirmed_email = ?', [ '', 1 ]);
-    return result
-}
+		if (!Array.isArray(result) || typeof result[0] !== "object") {
+			throw new Error("Unexpected result from database insert.");
+		}
 
-export const updatePassword = async (user_email: string, password: string): Promise<any> => {
-    const [ result ] = await db.query('UPDATE user SET password = ? WHERE email = ?', [ password, user_email ]);
-    return result;
-}
+		const [user] = await selectBy("id", user_id);
+		const { email_confirmed } = user;
 
-export const deleteUser = async (user_id: number): Promise<any> => {
-    const [ result ] = await db.query('DELETE FROM user WHERE id = ?', [ user_id ]);
-    return result;
-}
+		const token = generateToken({
+			user_id,
+			email_confirmed,
+		});
+		return { token };
+	} catch (error) {
+		return {
+			error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
+		};
+	}
+};
 
-export const sendTokenEmail = async (token: string, email: string): Promise<any> => {
-    const transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: SMTP_PORT ? parseInt(SMTP_PORT, 10) : 587,
-        secure: SMTP_SECURE === 'true',
-        auth: {
-            user: SMTP_USER,
-            pass: SMTP_PASS,
-        }
-    });
-        
-    (async () => {
-        const info = await transporter.sendMail({
-            from: SMTP_USER,
-            to: (typeof email === 'string') ? email : '',
-            subject: "XXX - Confirmación del correo electrónico",
-            text: "",
-            html: `
-                <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; color: black; border: 1px solid #e0e0e0; border-radius: 8px; padding: 24px; background-color: #fafafa;">
-                    <div style="text-align: center;">
-                        <h1 style="color: black;">Bienvenido a XXX</h1>
-                    </div>
-                    <p>Hola,</p>
-                    <p>Gracias por registrarte en nuestra plataforma. Para confirmar tu correo electrónico, por favor utiliza el siguiente código:</p>
-                    <div style="text-align: center; margin: 24px 0;">
-                        <span style="font-size: 2em; font-weight: bold; background-color: #e6f0ff; padding: 12px 24px; border-radius: 8px; display: inline-block; color:black;">${token}</span>
-                    </div>
-                    <p>Si no solicitaste este registro, puedes ignorar este mensaje.</p>
-                    <p style="margin-top: 32px;">Saludos,<br><strong>El equipo de XXX</strong></p>
-                </div>
-            `
-        });
-    })();
-}
+const User = {
+	selectBy,
+	selectPasswordById,
+	insert,
+	updateRandomNumber,
+	updateEmailConfirmedById,
+	updatePassword,
+};
+export default User;
