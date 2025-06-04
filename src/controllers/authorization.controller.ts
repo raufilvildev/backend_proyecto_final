@@ -20,7 +20,7 @@ const GENERAL_SERVER_ERROR_MESSAGE =
   "Ha ocurrido un error inesperado. Vuelva a intentarlo más tarde.";
 
 export const checkRandomNumberInput: RequestHandler = async (req, res) => {
-  const { user_id, random_number_input } = req.body;
+  const { user_id, random_number_input, role } = req.body;
 
   try {
     const resultSelectRandomNumberById =
@@ -46,7 +46,7 @@ export const checkRandomNumberInput: RequestHandler = async (req, res) => {
     await User.updateEmailConfirmedById(user_id);
     await User.updateRandomNumber(user_id, "");
 
-    const token = generateToken({ user_id, email_confirmed: 1 });
+    const token = generateToken({ user_id, email_confirmed: 1, role });
 
     res.json({ token });
   } catch (error) {
@@ -117,7 +117,7 @@ export const resetRandomNumber: RequestHandler = async (req, res) => {
 };
 
 export const returnToken: RequestHandler = async (req, res) => {
-  const { user_id, email_confirmed } = req.body;
-  const token = generateToken({ user_id, email_confirmed });
+  const { user_id, email_confirmed, role } = req.body;
+  const token = generateToken({ user_id, email_confirmed, role });
   res.json({ token });
 };

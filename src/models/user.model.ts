@@ -19,7 +19,7 @@ export const selectBy = async (
   }
 
   const [result] = await db.query(
-    `SELECT id, first_name, last_name, gender, birth_date, gender, email, username, email_confirmed FROM user WHERE ${field} = ?`,
+    `SELECT id, first_name, last_name, gender, birth_date, gender, email, username, email_confirmed, role FROM user WHERE ${field} = ?`,
     [value]
   );
 
@@ -43,6 +43,7 @@ export const insert = async ({
   email,
   username,
   password,
+  role,
 }: IUser) => {
   const created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
   const updated_at = created_at;
@@ -50,8 +51,8 @@ export const insert = async ({
   try {
     const result = await db.query(
       `
-    INSERT INTO user (first_name, last_name, gender, birth_date, email, username, password, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    INSERT INTO user (first_name, last_name, gender, birth_date, email, username, password, role, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         first_name,
         last_name,
@@ -60,6 +61,7 @@ export const insert = async ({
         email,
         username,
         bcrypt.hashSync(password as string, 8),
+        role,
         created_at,
         updated_at,
       ]
@@ -71,7 +73,7 @@ export const insert = async ({
 
     const insertResult = result[0] as ResultSetHeader;
     const user_id = insertResult.insertId;
-    const token = generateToken({ user_id, email_confirmed: 0 });
+    const token = generateToken({ user_id, email_confirmed: 0, role });
 
     return { token };
   } catch (error: any) {
@@ -128,11 +130,12 @@ export const updatePassword = async (user_id: number, password: string) => {
     );
 
     const [user] = await selectBy("id", user_id);
-    const { email_confirmed } = user;
+    const { email_confirmed, role } = user;
 
     const token = generateToken({
       user_id,
       email_confirmed,
+      role,
     });
     return { token };
   } catch (error) {

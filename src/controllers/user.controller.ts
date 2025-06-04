@@ -44,8 +44,8 @@ export const login: RequestHandler = async (req, res) => {
     }
 
     const [user]: IUser[] = await User.selectBy("id", user_id);
-    const { email_confirmed } = user;
-    const token = generateToken({ user_id, email_confirmed });
+    const { email_confirmed, role } = user;
+    const token = generateToken({ user_id, email_confirmed, role });
 
     res.json({ token });
   } catch (error) {
