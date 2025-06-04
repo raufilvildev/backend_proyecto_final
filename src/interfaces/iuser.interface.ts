@@ -8,5 +8,5 @@ export interface IUser {
   username: string;
   password?: string;
   email_confirmed?: boolean;
-  role: "" | "general" | "student" | "teacher";
+  role: "general" | "student" | "teacher";
 }
