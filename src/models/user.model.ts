@@ -43,7 +43,7 @@ export const insert = async ({
   email,
   username,
   password,
-  role,
+  role = "general",
 }: IUser) => {
   const created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
   const updated_at = created_at;
@@ -76,8 +76,8 @@ export const insert = async ({
     const token = generateToken({ user_id, email_confirmed: 0, role });
 
     return { token };
-  } catch (error: any) {
-    throw new Error(error);
+  } catch (error) {
+    return { error };
   }
 };
 
