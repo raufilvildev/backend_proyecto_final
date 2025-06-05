@@ -1,9 +1,9 @@
 import type { RequestHandler } from "express";
-import User from "../models/user.model";
-import { generateToken } from "../utils/authorization.util";
+import User from "../users/user.model";
+import { generateToken } from "../../shared/utils/authorization.util";
 import bcrypt from "bcryptjs";
-import { IUser } from "../interfaces/iuser.interface";
-import { GENERAL_SERVER_ERROR_MESSAGE } from "../utils/constants.util";
+import { IUser } from "../../interfaces/iuser.interface";
+import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 
 export const getById: RequestHandler = async (req, res) => {
   res.json(req.body);

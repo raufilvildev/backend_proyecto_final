@@ -4,9 +4,9 @@ import {
   resetRandomNumber,
   checkRandomNumberInput,
   returnToken,
-} from "../../controllers/authorization.controller";
-import { checkToken } from "../../middlewares/authorization.middleware";
-import { checkUserExists } from "../../middlewares/user.middleware";
+} from "../../features/authorization/authorization.controller";
+import { checkToken } from "../../features/authorization/authorization.middleware";
+import { checkUserExists } from "../../features/users/user.middleware";
 
 const router = Router();
 

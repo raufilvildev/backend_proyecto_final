@@ -1,10 +1,10 @@
-import db from "../config/db.config";
-import type { IUser } from "../interfaces/iuser.interface";
+import db from "../../config/db.config";
+import type { IUser } from "../../interfaces/iuser.interface";
 import dayjs from "dayjs";
 import bcrypt from "bcryptjs";
 import type { ResultSetHeader } from "mysql2";
-import { generateToken } from "../utils/authorization.util";
-import { GENERAL_SERVER_ERROR_MESSAGE } from "../utils/constants.util";
+import { generateToken } from "../../shared/utils/authorization.util";
+import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 
 export const selectBy = async (
   field: string,

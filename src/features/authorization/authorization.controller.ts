@@ -4,10 +4,10 @@ import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import fs from "node:fs/promises";
 import path from "node:path";
-import Authorization from "../models/authorization.model";
-import User from "../models/user.model";
-import { generateToken } from "../utils/authorization.util";
-import { GENERAL_SERVER_ERROR_MESSAGE } from "../utils/constants.util";
+import Authorization from "../authorization/authorization.model";
+import User from "../users/user.model";
+import { generateToken } from "../../shared/utils/authorization.util";
+import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 
 dotenv.config();
 
@@ -86,7 +86,11 @@ export const requestConfirmationByEmail: RequestHandler = async (req, res) => {
 
     const transporter = nodemailer.createTransport(options);
 
-    const templatePath = path.join(__dirname, "../templates", `${type}.html`);
+    const templatePath = path.join(
+      __dirname,
+      "../../shared/templates",
+      `${type}.html`
+    );
 
     let html = await fs.readFile(templatePath, "utf-8");
     html = html.replace("$$random_number$$", `${random_number}`);

@@ -5,9 +5,9 @@ import {
   changePassword,
   login,
   remove,
-} from "../../controllers/user.controller";
-import { checkUserExists } from "../../middlewares/user.middleware";
-import { checkToken } from "../../middlewares/authorization.middleware";
+} from "../../features/users/user.controller";
+import { checkUserExists } from "../../features/users/user.middleware";
+import { checkToken } from "../../features/authorization/authorization.middleware";
 
 const router = Router();
 

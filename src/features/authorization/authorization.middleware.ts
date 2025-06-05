@@ -2,8 +2,8 @@ import type { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
-import User from "../models/user.model";
-import { INVALID_TOKEN_MESSAGE } from "../utils/constants.util";
+import User from "../users/user.model";
+import { INVALID_TOKEN_MESSAGE } from "../../shared/utils/constants.util";
 
 dotenv.config();
 
@@ -52,6 +52,7 @@ export const checkToken: RequestHandler = async (req, res, next) => {
     req.body.birth_date = user.birth_date;
     req.body.email = user.email;
     req.body.username = user.username;
+    req.body.email_confirmed = user.email_confirmed;
     req.body.role = user.role;
 
     next();

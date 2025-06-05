@@ -1,4 +1,4 @@
-import db from "../config/db.config";
+import db from "../../config/db.config";
 
 const selectRandomNumberById = async (
   user_id: number
