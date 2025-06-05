@@ -7,6 +7,7 @@ import path from "node:path";
 import Authorization from "../models/authorization.model";
 import User from "../models/user.model";
 import { generateToken } from "../utils/authorization.util";
+import { GENERAL_SERVER_ERROR_MESSAGE } from "../utils/constants.util";
 
 dotenv.config();
 
@@ -15,9 +16,6 @@ const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, PRIVATE_KEY } = process.env;
 if (!PRIVATE_KEY) {
   throw new Error("PRIVATE_KEY not defined in .env");
 }
-
-const GENERAL_SERVER_ERROR_MESSAGE =
-  "Ha ocurrido un error inesperado. Vuelva a intentarlo más tarde.";
 
 export const checkRandomNumberInput: RequestHandler = async (req, res) => {
   const { user_id, random_number_input, role } = req.body;
@@ -44,7 +42,7 @@ export const checkRandomNumberInput: RequestHandler = async (req, res) => {
     }
 
     await User.updateEmailConfirmedById(user_id);
-    await User.updateRandomNumber(user_id, "");
+    await User.updateRandomNumber(user_id, null);
 
     const token = generateToken({ user_id, email_confirmed: 1, role });
 
@@ -109,7 +107,7 @@ export const requestConfirmationByEmail: RequestHandler = async (req, res) => {
 export const resetRandomNumber: RequestHandler = async (req, res) => {
   const { user_id } = req.body;
   try {
-    await User.updateRandomNumber(user_id, "");
+    await User.updateRandomNumber(user_id, null);
     res.json({ message: "El código ha sido reseteado correctamente." });
   } catch (error) {
     res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);

@@ -1,15 +1,15 @@
-import type { NextFunction, Request, RequestHandler, Response } from "express";
+import type { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import User from "../models/user.model";
+import { INVALID_TOKEN_MESSAGE } from "../utils/constants.util";
 
 dotenv.config();
 
 const PRIVATE_KEY: string = process.env.PRIVATE_KEY
   ? process.env.PRIVATE_KEY
   : "";
-const INVALID_TOKEN_MESSAGE = "Token de autenticación inválido";
 
 if (!PRIVATE_KEY) {
   throw new Error("PRIVATE_KEY not defined in .env");
@@ -49,7 +49,6 @@ export const checkToken: RequestHandler = async (req, res, next) => {
     req.body.user_id = user.id;
     req.body.first_name = user.first_name;
     req.body.last_name = user.last_name;
-    req.body.gender = user.gender;
     req.body.birth_date = user.birth_date;
     req.body.email = user.email;
     req.body.username = user.username;

@@ -3,13 +3,11 @@ import User from "../models/user.model";
 import { generateToken } from "../utils/authorization.util";
 import bcrypt from "bcryptjs";
 import { IUser } from "../interfaces/iuser.interface";
+import { GENERAL_SERVER_ERROR_MESSAGE } from "../utils/constants.util";
 
 export const getById: RequestHandler = async (req, res) => {
   res.json(req.body);
 };
-
-const GENERAL_SERVER_ERROR_MESSAGE =
-  "Ha ocurrido un error inesperado. Vuelva a intentarlo más tarde.";
 
 export const create: RequestHandler = async (req, res) => {
   try {

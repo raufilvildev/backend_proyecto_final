@@ -4,9 +4,7 @@ import dayjs from "dayjs";
 import bcrypt from "bcryptjs";
 import type { ResultSetHeader } from "mysql2";
 import { generateToken } from "../utils/authorization.util";
-
-const GENERAL_SERVER_ERROR_MESSAGE =
-  "Ha ocurrido un error inesperado. Vuelve a intentarlo más tarde.";
+import { GENERAL_SERVER_ERROR_MESSAGE } from "../utils/constants.util";
 
 export const selectBy = async (
   field: string,
@@ -19,7 +17,7 @@ export const selectBy = async (
   }
 
   const [result] = await db.query(
-    `SELECT id, first_name, last_name, gender, birth_date, gender, email, username, email_confirmed, role FROM user WHERE ${field} = ?`,
+    `SELECT id, first_name, last_name, birth_date, email, username, email_confirmed, role FROM users WHERE ${field} = ?`,
     [value]
   );
 
@@ -29,7 +27,7 @@ export const selectBy = async (
 export const selectPasswordById = async (
   user_id: number
 ): Promise<{ password: string }[]> => {
-  const [result] = await db.query("SELECT password FROM user WHERE id = ?", [
+  const [result] = await db.query("SELECT password FROM users WHERE id = ?", [
     user_id,
   ]);
   return result as { password: string }[];
@@ -38,32 +36,25 @@ export const selectPasswordById = async (
 export const insert = async ({
   first_name,
   last_name,
-  gender,
   birth_date,
   email,
   username,
   password,
   role = "general",
 }: IUser) => {
-  const created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
-  const updated_at = created_at;
-
   try {
     const result = await db.query(
       `
-    INSERT INTO user (first_name, last_name, gender, birth_date, email, username, password, role, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    INSERT INTO users (first_name, last_name, birth_date, email, username, password, role)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         first_name,
         last_name,
-        gender,
         birth_date,
         email,
         username,
         bcrypt.hashSync(password as string, 8),
         role,
-        created_at,
-        updated_at,
       ]
     );
 
@@ -83,12 +74,12 @@ export const insert = async ({
 
 export const updateRandomNumber = async (
   user_id: number,
-  random_number: string
+  random_number: string | null
 ) => {
   try {
     const [result] = await db.query(
       `
-    UPDATE user 
+    UPDATE users 
     SET random_number = ? WHERE id = ?
     `,
       [random_number, user_id]
@@ -96,7 +87,7 @@ export const updateRandomNumber = async (
     return result;
   } catch (error) {
     return {
-      error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
+      error: GENERAL_SERVER_ERROR_MESSAGE,
     };
   }
 };
@@ -105,7 +96,7 @@ export const updateEmailConfirmedById = async (user_id: number) => {
   try {
     const [result] = await db.query(
       `
-    UPDATE user 
+    UPDATE users 
     SET email_confirmed = ? WHERE id = ?
     `,
       [1, user_id]
@@ -113,7 +104,7 @@ export const updateEmailConfirmedById = async (user_id: number) => {
     return result;
   } catch (error) {
     return {
-      error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
+      error: GENERAL_SERVER_ERROR_MESSAGE,
     };
   }
 };
@@ -121,7 +112,7 @@ export const updateEmailConfirmedById = async (user_id: number) => {
 export const updatePassword = async (user_id: number, password: string) => {
   try {
     await db.query(
-      "UPDATE user SET password = ?, updated_at = ? WHERE id = ?",
+      "UPDATE users SET password = ?, updated_at = ? WHERE id = ?",
       [
         bcrypt.hashSync(password, 8),
         dayjs().format("YYYY-MM-DD HH:mm:ss"),
@@ -139,19 +130,17 @@ export const updatePassword = async (user_id: number, password: string) => {
     });
     return { token };
   } catch (error) {
-    return {
-      error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
-    };
+    return { error: GENERAL_SERVER_ERROR_MESSAGE };
   }
 };
 
 export const deleteUser = async (user_id: number) => {
   try {
-    const result = await db.query("DELETE FROM user WHERE id = ?", [user_id]);
+    const result = await db.query("DELETE FROM users WHERE id = ?", [user_id]);
     return result;
   } catch (error) {
     return {
-      error: "Ha habido un error inesperado. Vuelve a intentarlo más tarde.",
+      error: GENERAL_SERVER_ERROR_MESSAGE,
     };
   }
 };
