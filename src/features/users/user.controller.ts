@@ -1,15 +1,15 @@
-import type { RequestHandler } from "express";
+import type { Request, Response } from "express";
 import User from "../users/user.model";
 import { generateToken } from "../../shared/utils/authorization.util";
 import bcrypt from "bcryptjs";
 import { IUser } from "../../interfaces/iuser.interface";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 
-export const getById: RequestHandler = async (req, res) => {
-  res.json(req.body);
+export const getByUuid = async (req: Request, res: Response) => {
+  res.json(req.user);
 };
 
-export const create: RequestHandler = async (req, res) => {
+export const create = async (req: Request, res: Response) => {
   try {
     const result = await User.insert(req.body);
     res.status(201).json(result);
@@ -19,7 +19,7 @@ export const create: RequestHandler = async (req, res) => {
   }
 };
 
-export const login: RequestHandler = async (req, res) => {
+export const login = async (req: Request, res: Response) => {
   const INVALID_LOGIN_MESSAGE = "El usuario o la contraseña no son correctos.";
 
   const { username, password } = req.body;
@@ -32,18 +32,18 @@ export const login: RequestHandler = async (req, res) => {
       return;
     }
 
-    const user_id: number = result[0].id as number;
+    const user_uuid: string = result[0].uuid;
     const [resultSelectPasswordById]: { password: string }[] =
-      await User.selectPasswordById(user_id);
+      await User.selectPasswordByUuid(user_uuid);
 
     if (!bcrypt.compareSync(password, resultSelectPasswordById.password)) {
       res.status(401).json(INVALID_LOGIN_MESSAGE);
       return;
     }
 
-    const [user]: IUser[] = await User.selectBy("id", user_id);
+    const [user]: IUser[] = await User.selectBy("uuid", user_uuid);
     const { email_confirmed, role } = user;
-    const token = generateToken({ user_id, email_confirmed, role });
+    const token = generateToken({ user_uuid, email_confirmed, role });
 
     res.json({ token });
   } catch (error) {
@@ -51,10 +51,12 @@ export const login: RequestHandler = async (req, res) => {
   }
 };
 
-export const changePassword: RequestHandler = async (req, res) => {
-  const { user_id, password } = req.body;
+export const changePassword = async (req: Request, res: Response) => {
+  const { password } = req.body;
+  const { uuid } = req.user as IUser;
+  const user_uuid = uuid;
   try {
-    const result = await User.updatePassword(user_id, password);
+    const result = await User.updatePassword(user_uuid, password);
 
     if (result.error) {
       throw new Error(result.error);
@@ -67,10 +69,11 @@ export const changePassword: RequestHandler = async (req, res) => {
   }
 };
 
-export const remove: RequestHandler = async (req, res) => {
-  const { user_id } = req.body;
+export const remove = async (req: Request, res: Response) => {
+  const { uuid } = req.user as IUser;
+  const user_uuid: string = uuid;
   try {
-    const result = await User.deleteUser(user_id);
+    const result = await User.deleteUser(user_uuid);
 
     if (typeof result === "object" && "error" in result) {
       throw new Error(result.error);

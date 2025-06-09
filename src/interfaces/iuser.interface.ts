@@ -10,6 +10,7 @@ export interface IUser {
   email_confirmed?: boolean;
   random_number?: string;
   role: "general" | "student" | "teacher";
+  uuid: "string";
   created_at?: "string";
   updated_at?: "string";
   deleted_at?: "string";

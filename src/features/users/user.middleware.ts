@@ -2,8 +2,10 @@ import type { NextFunction, Request, Response } from "express";
 import User from "../users/user.model";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
+import { decrypt } from "../../shared/utils/crypto.util";
 
 const paramsDictionary: Record<string, string> = {
+  uuid: "uuid",
   id: "id",
   username: "nombre de usuario",
   email: "correo electrónico",
@@ -17,8 +19,12 @@ export const checkUserExists = (
     throw new Error("params must be a non-empty array.");
   }
 
-  if (params.some((param) => !["id", "email", "username"].includes(param))) {
-    throw new Error("id, email and username are the only allowed parameters.");
+  if (
+    params.some((param) => !["uuid", "id", "email", "username"].includes(param))
+  ) {
+    throw new Error(
+      "uuid, id, email and username are the only allowed parameters."
+    );
   }
 
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -43,6 +49,7 @@ export const checkUserExists = (
         }
 
         const user: IUser = result[0];
+        user.email = decrypt(user.email);
 
         for (const param of params as (keyof IUser)[]) {
           if (req.body[param] !== user[param]) {
@@ -55,7 +62,7 @@ export const checkUserExists = (
           }
         }
 
-        req.body = user;
+        req.user = user;
       }
 
       if (!positiveAnswer) {
