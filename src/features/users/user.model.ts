@@ -36,6 +36,7 @@ export const selectPasswordByUuid = async (
 };
 
 export const insert = async ({
+  uuid,
   first_name,
   last_name,
   birth_date,
@@ -44,15 +45,13 @@ export const insert = async ({
   password,
   role = "general",
 }: IUser) => {
-  const user_uuid = crypto.randomUUID();
-
   try {
     const result = await db.query(
       `
     INSERT INTO users (uuid, first_name, last_name, birth_date, email, username, password, role)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        user_uuid,
+        uuid,
         first_name,
         last_name,
         birth_date,
@@ -67,7 +66,7 @@ export const insert = async ({
       throw new Error(GENERAL_SERVER_ERROR_MESSAGE);
     }
 
-    const token = generateToken({ user_uuid, email_confirmed: 0, role });
+    const token = generateToken({ user_uuid: uuid, email_confirmed: 0, role });
 
     return { token };
   } catch (error) {
