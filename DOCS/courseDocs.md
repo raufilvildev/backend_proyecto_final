@@ -40,8 +40,8 @@
 **Notas importantes:**
 
 - El endpoint devuelve cursos donde el usuario es **profesor** (teacher_id = user.id) o **estudiante** (enrollment)
-- El campo `user_role_in_course` indica si el usuario es "teacher" o "student" en ese curso
+- El campo `user_role_in_course` indica si el usuario es "teacher" o "student" en ese cursod
 - Se requiere token de autenticación válido
-- Si el usuario no tiene cursos, se retorna mensaje descriptivo con array vacío
+- Si el usuario no tiene cursos, se retorna mensaje descriptivo con array vacío.
 
 ---
