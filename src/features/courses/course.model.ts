@@ -18,7 +18,7 @@ SELECT
     c.uuid,
     c.title,
     c.short_description,
-    c.image.url,
+    c.image_url,
     c.teacher_id,
     'student' AS user_role_in_course
 FROM
