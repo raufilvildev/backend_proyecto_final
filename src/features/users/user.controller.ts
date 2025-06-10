@@ -4,8 +4,20 @@ import { generateToken } from "../../shared/utils/authorization.util";
 import bcrypt from "bcryptjs";
 import { IUser } from "../../interfaces/iuser.interface";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
+import { decrypt } from "../../shared/utils/crypto.util";
 
 export const getByUuid = async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
+    return;
+  }
+
+  if (!req.user.email) {
+    res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
+    return;
+  }
+
+  req.user.email = decrypt(req.user.email);
   res.json(req.user);
 };
 
