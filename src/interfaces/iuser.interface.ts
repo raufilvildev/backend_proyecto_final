@@ -6,12 +6,13 @@ export interface IUser {
   email: string;
   username: string;
   password?: string;
+  profile_image_url?: string;
   notify_by_email?: boolean;
   email_confirmed?: boolean;
   random_number?: string;
   role: "general" | "student" | "teacher";
-  uuid: "string";
-  created_at?: "string";
-  updated_at?: "string";
-  deleted_at?: "string";
+  uuid: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }
