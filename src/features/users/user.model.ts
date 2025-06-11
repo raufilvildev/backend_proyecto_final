@@ -136,6 +136,37 @@ export const updatePassword = async (user_uuid: string, password: string) => {
   }
 };
 
+export const update = async (
+  uuid: string,
+  { first_name, last_name, birth_date, username, profile_image_url }: IUser
+) => {
+  try {
+    const result = await db.query(
+      `UPDATE users SET first_name = ?, last_name = ?, birth_date = ?, username = ?, profile_image_url = ? WHERE uuid = ?`,
+      [first_name, last_name, birth_date, username, profile_image_url, uuid]
+    );
+    return result;
+  } catch (error) {
+    return {
+      error: GENERAL_SERVER_ERROR_MESSAGE,
+    };
+  }
+};
+
+export const updateEmail = async (uuid: string, email: string) => {
+  try {
+    const result = await db.query(`UPDATE users SET email = ? WHERE uuid = ?`, [
+      encrypt(email),
+      uuid,
+    ]);
+    return result;
+  } catch (error) {
+    return {
+      error: GENERAL_SERVER_ERROR_MESSAGE,
+    };
+  }
+};
+
 export const deleteUser = async (user_uuid: string) => {
   try {
     const result = await db.query("DELETE FROM users WHERE uuid = ?", [
@@ -156,6 +187,8 @@ const User = {
   updateRandomNumber,
   updateEmailConfirmedByUuid,
   updatePassword,
+  update,
+  updateEmail,
   deleteUser,
 };
 export default User;

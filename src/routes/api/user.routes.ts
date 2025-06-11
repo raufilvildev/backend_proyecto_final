@@ -5,6 +5,8 @@ import {
   login,
   remove,
   getByUuid,
+  edit,
+  editEmail,
 } from "../../features/users/user.controller";
 import { checkUserExists } from "../../features/users/user.middleware";
 import { checkToken } from "../../features/authorization/authorization.middleware";
@@ -22,6 +24,9 @@ router.post(
 );
 router.post("/login", login);
 
+router.put("/update", checkToken, edit);
+
+router.patch("/update/email", checkToken, editEmail);
 router.patch("/login/change_password", checkToken, changePassword);
 
 router.delete("", checkToken, remove);

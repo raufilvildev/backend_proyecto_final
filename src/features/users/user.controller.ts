@@ -81,6 +81,44 @@ export const changePassword = async (req: Request, res: Response) => {
   }
 };
 
+export const edit = async (req: Request, res: Response) => {
+  const { uuid } = req.user as IUser;
+
+  const user_uuid: string = uuid;
+
+  try {
+    const result = await User.update(user_uuid, req.body);
+
+    if (typeof result === "object" && "error" in result) {
+      throw new Error(result.error);
+    }
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json(error);
+    return;
+  }
+};
+
+export const editEmail = async (req: Request, res: Response) => {
+  const { uuid } = req.user as IUser;
+
+  const user_uuid: string = uuid;
+
+  try {
+    const result = await User.updateEmail(user_uuid, req.body.email);
+
+    if (typeof result === "object" && "error" in result) {
+      throw new Error(result.error);
+    }
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json(error);
+    return;
+  }
+};
+
 export const remove = async (req: Request, res: Response) => {
   const { uuid } = req.user as IUser;
   const user_uuid: string = uuid;
