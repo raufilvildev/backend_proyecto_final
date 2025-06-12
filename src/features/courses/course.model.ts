@@ -5,8 +5,8 @@ export const selectAll = async (userId: number): Promise<ICourse[]> => {
   const query = `SELECT
     c.uuid,
     c.title,
-    c.short_description,
-    c.image_url,
+    c.description,
+    c.course_image_url,
     CONCAT(u.first_name, ' ', u.last_name) AS teacher
 FROM
     courses c
@@ -18,8 +18,8 @@ UNION
 SELECT
     c.uuid,
     c.title,
-    c.short_description,
-    c.image_url,
+    c.description,
+    c.course_image_url,
     CONCAT(u.first_name, ' ', u.last_name) AS teacher
 FROM
     courses c
