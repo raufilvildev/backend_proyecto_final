@@ -48,8 +48,8 @@ export const insert = async ({
   try {
     const result = await db.query(
       `
-    INSERT INTO users (uuid, first_name, last_name, birth_date, email, username, password, role)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    INSERT INTO users (uuid, first_name, last_name, birth_date, email, username, password, role, profile_image_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         uuid,
         first_name,
@@ -59,6 +59,7 @@ export const insert = async ({
         username,
         bcrypt.hashSync(password as string, 8),
         role,
+        "default_user_profile.svg",
       ]
     );
 

@@ -112,6 +112,7 @@ export const requestConfirmationByEmail = async (
 
     res.status(200).json({ message: "Correo enviado correctamente." });
   } catch (error) {
+    console.log(error);
     res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
   }
 };

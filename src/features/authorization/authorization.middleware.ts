@@ -4,6 +4,8 @@ import type { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import User from "../users/user.model";
 import { INVALID_TOKEN_MESSAGE } from "../../shared/utils/constants.util";
+import { decrypt } from "../../shared/utils/crypto.util";
+import dayjs from "dayjs";
 
 dotenv.config();
 
@@ -45,6 +47,7 @@ export const checkToken: RequestHandler = async (req, res, next) => {
     }
 
     req.user = user;
+    req.user.birth_date = dayjs(req.user.birth_date).format("YYYY-MM-DD");
 
     next();
   } catch (error) {
