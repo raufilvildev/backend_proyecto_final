@@ -9,7 +9,6 @@ interface User {
   role: "student" | "teacher" | "general";
 }
 
-// Cambiado de Reply a Response
 interface Response {
   uuid: string;
   user: User;
@@ -25,7 +24,7 @@ interface Thread {
   content: string;
   created_at: Date;
   updated_at: Date;
-  responses: Response[]; // Cambiado de Reply[] a Response[]
+  responses: Response[];
 }
 
 export const selectAllThreadsWithReplies = async (
@@ -58,7 +57,6 @@ export const selectAllThreadsWithReplies = async (
       ORDER BY
           ft.created_at ${orderClause}`;
 
-    // Cambiado el nombre de la variable para mayor claridad, aunque la query sigue siendo para "responses"
     const selectAllResponsesQuery = `SELECT
           fp.thread_id,
           fp.uuid,
@@ -83,7 +81,6 @@ export const selectAllThreadsWithReplies = async (
           )
               ORDER BY fp.created_at ASC;`;
 
-    // Cambiado el nombre de la variable de desestructuración
     const [[threadsResult], [responsesData]] = await Promise.all([
       db.query(selectAllThreadsQuery, [courseUuid]),
       db.query(selectAllResponsesQuery, [courseUuid]),
