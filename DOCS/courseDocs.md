@@ -2,60 +2,46 @@
 
 ## GET /api/courses
 
-**Descripción:** Obtener todos los cursos del usuario autenticado (como profesor o estudiante)  
-**Headers:** `Authorization: Bearer <token>`  
-**Respuesta:** Array de cursos donde el usuario participa o mensaje si no tiene cursos  
+**Descripción:** Obtener todos los cursos del usuario autenticado (como profesor o estudiante).
+**Headers:** `Authorization: Bearer <token>`
+**Respuesta:**
+  - Si el usuario tiene cursos: Array de objetos curso. Cada objeto incluye `uuid`, `title`, `short_description` (descripción breve del curso), `image_url` (URL de la imagen del curso), y `teacher` (nombre completo del profesor).
+  - Si el usuario no tiene cursos: Un objeto con un mensaje indicándolo, por ejemplo:
+    ```json
+    {
+      "message": "No tienes cursos asignados",
+      "courses": []
+    }
+    ```
 **Códigos:** 200 (OK), 401 (Token inválido), 500 (Error del servidor)
 
-**Ejemplo de respuesta exitosa:**
+---
 
-```json
-[
-  {
-    "uuid": "550e8400-e29b-41d4-a716-446655440000",
-    "title": "Matemáticas Básicas",
-    "short_description": "Curso introductorio de matemáticas",
-    "image_url": "https://example.com/math.jpg",
-    "teacher": "Juan Pérez"
-  },
-  {
-    "uuid": "550e8400-e29b-41d4-a716-446655440001",
-    "title": "Historia Universal",
-    "short_description": "Recorrido por la historia mundial",
-    "image_url": "https://example.com/history.jpg",
-    "teacher": "María García"
-  }
-]
-```
+## GET /api/courses/:courseUuid
 
-**Ejemplo de respuesta sin cursos:**
-
-```json
-{
-  "message": "No tienes cursos asignados",
-  "courses": []
-}
-```
-
-**Campos de respuesta:**
-
-- `uuid`: Identificador único del curso (UUID)
-- `title`: Título del curso
-- `short_description`: Descripción breve del curso
-- `image_url`: URL de la imagen del curso
-- `teacher`: Nombre completo del profesor (first_name + last_name)
-
-**Notas importantes:**
-
-- El endpoint devuelve cursos donde el usuario es **profesor** (teacher_id = user.id) o **estudiante**
-- Se utiliza `uuid` en lugar de `id` para mayor seguridad
-- Se requiere token de autenticación válido
-- Si el usuario no tiene cursos, se retorna mensaje descriptivo con array vacío
-
-**Lógica de la consulta:**
-
-1. **Primera parte del UNION:** Cursos donde el usuario es profesor
-2. **Segunda parte del UNION:** Cursos donde el usuario está matriculado como estudiante
-3. **Resultado:** Lista unificada sin duplicados de todos los cursos del usuario
+**Descripción:** Obtener un curso específico por su UUID.
+**Headers:** `Authorization: Bearer <token>`
+**Parámetros de URL:**
+  - `courseUuid` (string, requerido): El UUID del curso a obtener.
+**Respuesta:**
+  - Si se encuentra el curso: Objeto curso con `uuid`, `title`, `description` (descripción detallada del curso), `course_image_url`, y `teacher` (nombre completo del profesor). Ejemplo:
+    ```json
+    {
+      "uuid": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Nombre del Curso",
+      "description": "Descripción detallada del curso...",
+      "course_image_url": "https://example.com/image.jpg",
+      "teacher": "Nombre ApellidoProfesor"
+    }
+    ```
+  - Si no se proporciona `courseUuid`:
+    ```json
+    { "error": "Course UUID is required" }
+    ```
+  - Si el curso no se encuentra:
+    ```json
+    { "error": "Course not found" }
+    ```
+**Códigos:** 200 (OK), 400 (UUID del curso requerido), 401 (Token inválido), 404 (Curso no encontrado), 500 (Error del servidor)
 
 ---
