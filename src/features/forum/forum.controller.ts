@@ -59,11 +59,11 @@ export const postThread = async (
       return;
     }
     if (!title || typeof title !== "string" || title.trim() === "") {
-      res.status(400).json({ error: "Title requerido" });
+      res.status(400).json({ error: "Titulo requerido" });
       return;
     }
     if (!content || typeof content !== "string" || content.trim() === "") {
-      res.status(400).json({ error: "Contenido del thraed requerido" });
+      res.status(400).json({ error: "Contenido del thread requerido" });
       return;
     }
 
