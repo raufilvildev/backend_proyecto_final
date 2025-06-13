@@ -78,7 +78,8 @@ export const selectAllThreadsWithReplies = async (
               FROM forum_threads ft
               JOIN courses c ON ft.course_id = c.id
               WHERE c.uuid = ?
-          );`;
+          )
+              ORDER BY fp.created_at ASC;`;
 
     const [[threadsResult], [responsesResult]] = await Promise.all([
       db.query(selectAllThreadsQuery, [courseUuid]),
