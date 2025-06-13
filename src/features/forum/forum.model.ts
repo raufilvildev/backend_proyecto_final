@@ -105,16 +105,14 @@ export const selectAllThreadsWithReplies = async (
         created_at: thread.created_at,
         updated_at: thread.updated_at,
         content: thread.content,
-        responses: [], // Sigue siendo 'responses' como propiedad del objeto Thread
+        responses: [],
       });
     }
 
-    // Cambiado el nombre de la variable del bucle de reply a responseItem
     for (const responseItem of responsesData as any[]) {
       const parentThread = threadsMap.get(responseItem.thread_id);
       if (parentThread) {
         parentThread.responses.push({
-          // Sigue siendo 'responses' como propiedad del objeto Thread
           uuid: responseItem.uuid,
           user: {
             uuid: responseItem.user_uuid,
