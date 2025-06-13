@@ -1,5 +1,10 @@
-import { IForumThread, IForumPost } from "../../interfaces/iforum.interface";
 import db from "../../config/db.config";
+
+export interface IPostThreadPayload {
+  title: string;
+  content: string;
+  uuid: string;
+}
 
 interface User {
   uuid: string;
@@ -131,4 +136,39 @@ export const selectAllThreadsWithReplies = async (
   }
 };
 
-export default { selectAllThreadsWithReplies };
+export const insertThread = async (
+  courseUuid: string,
+  title: string,
+  content: string,
+  userId: number,
+  uuid: string
+) => {
+  const [result] = await db.query(
+    `INSERT INTO forum_threads (uuid, course_id, user_id, title, content, created_at, updated_at)
+VALUES (
+    ?,
+    (SELECT id FROM courses WHERE uuid = ?),
+    ?,
+    ?,
+    ?, 
+    NOW(),
+    NOW() )
+`,
+    [uuid, courseUuid, userId, title, content]
+  );
+  return result;
+};
+
+export const selectThreadByUuid = async (uuid: string) => {
+  const [result] = await db.query(
+    "select * from forum_threads where uuid = ?",
+    [uuid]
+  );
+  return result;
+};
+
+export default {
+  selectAllThreadsWithReplies,
+  insertThread,
+  selectThreadByUuid,
+};
