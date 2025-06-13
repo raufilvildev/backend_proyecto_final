@@ -5,7 +5,6 @@ import { getAllThreadsWithRepliesAndUsers } from "../../features/forum/forum.con
 
 const router = Router();
 
-// Agregar checkToken middleware si es necesario
 router.get("/:courseUuid", getAllThreadsWithRepliesAndUsers);
 
 export default router;
