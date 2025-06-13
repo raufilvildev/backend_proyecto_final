@@ -9,7 +9,8 @@ interface User {
   role: "student" | "teacher" | "general";
 }
 
-interface Reply {
+// Cambiado de Reply a Response
+interface Response {
   uuid: string;
   user: User;
   content: string;
@@ -24,7 +25,7 @@ interface Thread {
   content: string;
   created_at: Date;
   updated_at: Date;
-  responses: Reply[];
+  responses: Response[]; // Cambiado de Reply[] a Response[]
 }
 
 export const selectAllThreadsWithReplies = async (
@@ -57,6 +58,7 @@ export const selectAllThreadsWithReplies = async (
       ORDER BY
           ft.created_at ${orderClause}`;
 
+    // Cambiado el nombre de la variable para mayor claridad, aunque la query sigue siendo para "responses"
     const selectAllResponsesQuery = `SELECT
           fp.thread_id,
           fp.uuid,
@@ -81,7 +83,8 @@ export const selectAllThreadsWithReplies = async (
           )
               ORDER BY fp.created_at ASC;`;
 
-    const [[threadsResult], [responsesResult]] = await Promise.all([
+    // Cambiado el nombre de la variable de desestructuración
+    const [[threadsResult], [responsesData]] = await Promise.all([
       db.query(selectAllThreadsQuery, [courseUuid]),
       db.query(selectAllResponsesQuery, [courseUuid]),
     ]);
@@ -102,25 +105,27 @@ export const selectAllThreadsWithReplies = async (
         created_at: thread.created_at,
         updated_at: thread.updated_at,
         content: thread.content,
-        responses: [],
+        responses: [], // Sigue siendo 'responses' como propiedad del objeto Thread
       });
     }
 
-    for (const reply of responsesResult as any[]) {
-      const parentThread = threadsMap.get(reply.thread_id);
+    // Cambiado el nombre de la variable del bucle de reply a responseItem
+    for (const responseItem of responsesData as any[]) {
+      const parentThread = threadsMap.get(responseItem.thread_id);
       if (parentThread) {
         parentThread.responses.push({
-          uuid: reply.uuid,
+          // Sigue siendo 'responses' como propiedad del objeto Thread
+          uuid: responseItem.uuid,
           user: {
-            uuid: reply.user_uuid,
-            first_name: reply.first_name,
-            last_name: reply.last_name,
-            profile_image_url: reply.profile_image_url,
-            role: reply.role,
+            uuid: responseItem.user_uuid,
+            first_name: responseItem.first_name,
+            last_name: responseItem.last_name,
+            profile_image_url: responseItem.profile_image_url,
+            role: responseItem.role,
           },
-          content: reply.content,
-          created_at: reply.created_at,
-          updated_at: reply.updated_at,
+          content: responseItem.content,
+          created_at: responseItem.created_at,
+          updated_at: responseItem.updated_at,
         });
       }
     }
