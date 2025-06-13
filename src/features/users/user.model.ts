@@ -144,7 +144,14 @@ export const update = async (
   try {
     const result = await db.query(
       `UPDATE users SET first_name = ?, last_name = ?, birth_date = ?, username = ?, profile_image_url = ? WHERE uuid = ?`,
-      [first_name, last_name, birth_date, username, profile_image_url, uuid]
+      [
+        first_name,
+        last_name,
+        birth_date,
+        username,
+        profile_image_url ? profile_image_url : "default_user_profile.svg",
+        uuid,
+      ]
     );
     return result;
   } catch (error) {
