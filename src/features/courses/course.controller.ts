@@ -24,8 +24,9 @@ export const getAll = async (req: Request, res: Response) => {
 };
 
 export const getByUuid = async (req: Request, res: Response) => {
-  const { courseUuid } = req.params;
   try {
+    const { courseUuid } = req.params;
+    const user = req.user as IUser;
     if (!courseUuid) {
       res.status(400).json({ error: "Course UUID is required" });
       return;
