@@ -5,6 +5,7 @@ import {
   login,
   remove,
   getByUuid,
+  getByEmail,
   edit,
   editEmail,
 } from "../../features/users/user.controller";
@@ -14,6 +15,7 @@ import { generateUuid } from "../../shared/middlewares/uuid_generate.middleware"
 
 const router = Router();
 
+router.get("/email/:user_email", checkToken, getByEmail);
 router.get("", checkToken, getByUuid);
 
 router.post(

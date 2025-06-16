@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Request, RequestHandler, Response } from "express";
 import User from "../users/user.model";
 import { generateToken } from "../../shared/utils/authorization.util";
 import bcrypt from "bcryptjs";
@@ -19,6 +19,39 @@ export const getByUuid = async (req: Request, res: Response) => {
 
   req.user.email = decrypt(req.user.email);
   res.json(req.user);
+};
+
+export const getByEmail = async (req: Request, res: Response) => {
+  const { user_email } = req.params;
+  try {
+    const result = await User.selectBy("email", user_email);
+
+    if (result.length === 0) {
+      res
+        .status(404)
+        .json(
+          "No existe ningún usuario general o estudiante con ese correo electrónico."
+        );
+      return;
+    }
+
+    const user = result[0];
+
+    if (user.role === "teacher") {
+      res
+        .status(404)
+        .json(
+          "No existe ningún usuario general o estudiante con ese correo electrónico."
+        );
+      return;
+    }
+
+    user.email = decrypt(user.email);
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json(GENERAL_SERVER_ERROR_MESSAGE);
+  }
 };
 
 export const create = async (req: Request, res: Response) => {
