@@ -28,14 +28,14 @@ export const getByUuid = async (req: Request, res: Response) => {
     const { courseUuid } = req.params;
     const user = req.user as IUser;
     if (!courseUuid) {
-      res.status(400).json({ error: "Course UUID is required" });
+      res.status(400).json({ error: "Course UUID es requerido" });
       return;
     }
 
     const course = await Courses.selectByUuid(courseUuid, user);
 
     if (!course) {
-      res.status(404).json({ error: "Course not found" });
+      res.status(404).json({ error: "No se encuentra el curso" });
       return;
     }
 

@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
-import Forum, { IPostThreadPayload } from "./forum.model";
+import Forum, {
+  IPostResponsePayload,
+  IPostThreadPayload,
+  selectThreadByUuid,
+  selectResponseByUuid,
+} from "./forum.model";
 
 export const getAllThreadsWithRepliesAndUsers = async (
   req: Request,
@@ -73,7 +78,8 @@ export const postThread = async (
 
     res.status(201).json(newThreadDetails);
   } catch (error) {
-    console.error("Error in postThread controller:", error);
+    console.error("Error en postThread controller:", error);
+
     res.status(500).json({
       status: "error",
       message: GENERAL_SERVER_ERROR_MESSAGE,
@@ -81,4 +87,37 @@ export const postThread = async (
   }
 };
 
-export default { getAllThreadsWithRepliesAndUsers, postThread };
+export const postResponse = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const user = req.user as IUser;
+    const { threadUuid } = req.params;
+    const { content, uuid } = req.body as IPostResponsePayload;
+
+    if (!threadUuid) {
+      res.status(400).json({ error: "Thread UUID requerido" });
+      return;
+    }
+
+    if (!content || typeof content !== "string" || content.trim() === "") {
+      res.status(400).json({ error: "Contenido del thread requerido" });
+      return;
+    }
+
+    await Forum.insertResponse(user.id, uuid, content, threadUuid);
+
+    const newResponseDetails = await Forum.selectResponseByUuid(uuid);
+
+    res.status(201).json(newResponseDetails);
+  } catch (error) {
+    console.error("Error en postResponse controller:", error);
+    res.status(500).json({
+      status: "error",
+      message: GENERAL_SERVER_ERROR_MESSAGE,
+    });
+  }
+};
+
+export default { getAllThreadsWithRepliesAndUsers, postThread, postResponse };
