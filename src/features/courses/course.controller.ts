@@ -32,7 +32,7 @@ export const getByUuid = async (req: Request, res: Response) => {
       return;
     }
 
-    const course = await Courses.selectByUuid(courseUuid);
+    const course = await Courses.selectByUuid(courseUuid, user);
 
     if (!course) {
       res.status(404).json({ error: "Course not found" });
