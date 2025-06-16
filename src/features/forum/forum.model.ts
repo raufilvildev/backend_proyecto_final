@@ -1,8 +1,15 @@
+import { IUser } from "interfaces/iuser.interface";
 import db from "../../config/db.config";
 
 export interface IPostThreadPayload {
   title: string;
   content: string;
+  uuid: string;
+}
+
+export interface IPostResponsePayload {
+  content: string;
+  user?: IUser;
   uuid: string;
 }
 
@@ -136,6 +143,21 @@ export const selectAllThreadsWithReplies = async (
   }
 };
 
+export const selectThreadByUuid = async (uuid: string) => {
+  const [result] = await db.query(
+    "select * from forum_threads where uuid = ?",
+    [uuid]
+  );
+  return result;
+};
+
+export const selectResponseByUuid = async (uuid: string) => {
+  const [result] = await db.query("select * from forum_posts where uuid = ?", [
+    uuid,
+  ]);
+  return result;
+};
+
 export const insertThread = async (
   courseUuid: string,
   title: string,
@@ -159,11 +181,24 @@ VALUES (
   return result;
 };
 
-export const selectThreadByUuid = async (uuid: string) => {
+export const insertResponse = async (
+  userId: number,
+  uuid: string,
+  content: string,
+  threadUuid: string
+) => {
   const [result] = await db.query(
-    "select * from forum_threads where uuid = ?",
-    [uuid]
+    `INSERT into forum_posts (uuid, thread_id, user_id, content, created_at, updated_at)
+    VALUES (?, 
+    (SELECT id FROM forum_threads WHERE uuid = ?),
+    ?, 
+    ?,
+     NOW(), 
+     NOW())
+    `,
+    [uuid, threadUuid, userId, content]
   );
+
   return result;
 };
 
@@ -171,4 +206,6 @@ export default {
   selectAllThreadsWithReplies,
   insertThread,
   selectThreadByUuid,
+  insertResponse,
+  selectResponseByUuid,
 };

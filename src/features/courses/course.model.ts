@@ -75,9 +75,7 @@ export const selectByUuid = async (
         c.uuid = ? AND e.student_id = ?`;
     params.push(user.id);
   } else {
-    console.error(
-      `User role '${user.role}' does not have a specific query for selectByUuid`
-    );
+    console.error(`User role ${user.role} not allowed`);
   }
 
   try {
