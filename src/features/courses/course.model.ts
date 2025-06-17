@@ -102,7 +102,6 @@ export const insert = async (
   studentUuids: string[]
 ): Promise<ICourse> => {
   try {
-    // 3. Insertar el curso en la tabla 'courses'
     const queryInsertCourse = `
       INSERT INTO courses (uuid, teacher_id, title, description, planning, course_image_url) 
       VALUES (?, ?, ?, ?, ?, ?);
@@ -118,9 +117,7 @@ export const insert = async (
 
     const newCourseId = courseResult.insertId;
 
-    // 4. Matricular a los estudiantes (si se proporcionaron)
     if (studentUuids && studentUuids.length > 0) {
-      // Primero, obtenemos los IDs numéricos de los usuarios a partir de sus UUIDs
       const queryGetStudentIds = `SELECT id FROM users WHERE uuid IN (?);`;
       const [studentRows]: any = await db.query(queryGetStudentIds, [
         studentUuids,
