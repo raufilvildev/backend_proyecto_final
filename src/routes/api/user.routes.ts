@@ -12,7 +12,9 @@ import {
 import { checkUserExists } from "../../features/users/user.middleware";
 import { checkToken } from "../../features/authorization/authorization.middleware";
 import { generateUuid } from "../../shared/middlewares/uuid_generate.middleware";
+import multer from "multer";
 
+const upload = multer({ dest: "public/uploads/users/" });
 const router = Router();
 
 router.get("/email/:user_email", checkToken, getByEmail);
@@ -26,7 +28,7 @@ router.post(
 );
 router.post("/login", login);
 
-router.put("/update", checkToken, edit);
+router.put("/update", upload.single("profile-image"), checkToken, edit);
 
 router.patch("/update/email", checkToken, editEmail);
 router.patch("/login/change_password", checkToken, changePassword);

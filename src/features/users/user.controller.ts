@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { IUser } from "../../interfaces/iuser.interface";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { decrypt } from "../../shared/utils/crypto.util";
+import fs from "node:fs";
 
 export const getByUuid = async (req: Request, res: Response) => {
   if (!req.user) {
@@ -115,6 +116,17 @@ export const changePassword = async (req: Request, res: Response) => {
 };
 
 export const edit = async (req: Request, res: Response) => {
+  let newName = "";
+  if (req.file) {
+    const extension = req.file.mimetype.split("/")[1] || "";
+    newName = `${req.file.filename}.${extension}`;
+  }
+  if (req.file && req.file.path) {
+    fs.renameSync(req.file.path, `./public/uploads/users/${newName}`);
+  }
+
+  req.body.profile_image_url = newName;
+
   const { uuid } = req.user as IUser;
 
   const user_uuid: string = uuid;
