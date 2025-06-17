@@ -18,6 +18,7 @@ export const getAll = async (req: Request, res: Response) => {
 
     res.json(courses);
   } catch (error) {
+    console.log("error en getByUuid controller cursos", error);
     res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
   }
 };
@@ -40,6 +41,7 @@ export const getByUuid = async (req: Request, res: Response) => {
 
     res.json(course);
   } catch (error) {
+    console.log("error en getByUuid controller cursos", error);
     res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
   }
 };
