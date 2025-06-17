@@ -1,6 +1,7 @@
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import apiRoutes from "./routes/api.routes";
 
 const app = express();
 app.use(
@@ -11,10 +12,10 @@ app.use(
 );
 
 app.use(express.json());
+app.use(express.static("public"));
 
 // Route configuration
 
-import apiRoutes from "./routes/api.routes";
 app.use("/api", apiRoutes);
 
 // 404 handler
