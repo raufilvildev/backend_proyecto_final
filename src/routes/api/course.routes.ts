@@ -16,9 +16,9 @@ router.get("/:courseUuid", getByUuid);
 
 router.post(
   "",
+  upload.single("course-image"),
   teacherRoleCheck,
   generateUuid,
-  upload.single("course-image"),
   create
 );
 
