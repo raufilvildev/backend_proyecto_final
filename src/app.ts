@@ -16,6 +16,10 @@ app.use(express.static("public"));
 
 // Route configuration
 
+app.get('/', (req: Request, res: Response) => {
+  res.json({ message: 'Bienvenido a la API' });
+});
+
 app.use("/api", apiRoutes);
 
 // 404 handler
