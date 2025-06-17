@@ -1,4 +1,4 @@
-import type { Request, RequestHandler, Response } from "express";
+import type { Request, Response } from "express";
 import User from "../users/user.model";
 import { generateToken } from "../../shared/utils/authorization.util";
 import bcrypt from "bcryptjs";
