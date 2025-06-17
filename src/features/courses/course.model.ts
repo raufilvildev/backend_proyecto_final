@@ -2,6 +2,15 @@ import { ICourse } from "../../interfaces/icourse.interface";
 import db from "../../config/db.config";
 import { IUser } from "interfaces/iuser.interface";
 
+export interface CourseInsertData {
+  uuid: string;
+  teacher_id: number;
+  title: string;
+  description?: string;
+  course_image_url?: string;
+  planning?: string;
+}
+
 export const selectAll = async (userId: number): Promise<ICourse[]> => {
   try {
     const query = `SELECT
@@ -88,9 +97,66 @@ export const selectByUuid = async (
   }
 };
 
+export const insert = async (
+  courseData: CourseInsertData,
+  studentUuids: string[]
+): Promise<ICourse> => {
+  try {
+    // 3. Insertar el curso en la tabla 'courses'
+    const queryInsertCourse = `
+      INSERT INTO courses (uuid, teacher_id, title, description, planning, course_image_url) 
+      VALUES (?, ?, ?, ?, ?, ?);
+    `;
+    const [courseResult]: any = await db.query(queryInsertCourse, [
+      courseData.uuid,
+      courseData.teacher_id,
+      courseData.title,
+      courseData.description,
+      courseData.planning,
+      courseData.course_image_url,
+    ]);
+
+    const newCourseId = courseResult.insertId;
+
+    // 4. Matricular a los estudiantes (si se proporcionaron)
+    if (studentUuids && studentUuids.length > 0) {
+      // Primero, obtenemos los IDs numéricos de los usuarios a partir de sus UUIDs
+      const queryGetStudentIds = `SELECT id FROM users WHERE uuid IN (?);`;
+      const [studentRows]: any = await db.query(queryGetStudentIds, [
+        studentUuids,
+      ]);
+
+      if (studentRows.length !== studentUuids.length) {
+        throw new Error("Uno o más UUIDs de estudiantes no son válidos.");
+      }
+
+      const enrollmentValues = studentRows.map((student: { id: number }) => [
+        student.id,
+        newCourseId,
+      ]);
+
+      const enrollmentsSql = `
+        INSERT INTO enrollments (student_id, course_id) VALUES ?;
+      `;
+      await db.query(enrollmentsSql, [enrollmentValues]);
+    }
+
+    const [newCourseRows]: any = await db.query(
+      "SELECT * FROM courses WHERE id = ?",
+      [newCourseId]
+    );
+
+    return newCourseRows[0] as ICourse;
+  } catch (error) {
+    console.error("error en el modelo de creación de curso ");
+    throw error;
+  }
+};
+
 const Courses = {
   selectAll,
   selectByUuid,
+  insert,
 };
 
 export default Courses;

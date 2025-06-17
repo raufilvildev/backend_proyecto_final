@@ -6,7 +6,7 @@ import {
   getAll,
   getByUuid,
 } from "../../features/courses/course.controller";
-import { teacherRoleCheck } from "shared/middlewares/teacher_role_check.middleware";
+import { teacherRoleCheck } from "../../shared/middlewares/teacher_role_check.middleware";
 
 const upload = multer({ dest: "public/uploads/courses/" });
 const router = Router();
