@@ -76,7 +76,7 @@ export const create = async (req: Request, res: Response) => {
       try {
         const parsedStudents = JSON.parse(students);
         if (!Array.isArray(parsedStudents)) {
-          res.status(400).json({ error: "Students data must be an array." });
+          res.status(400).json({ error: "Estudiantes debe ser un array" });
           return;
         }
         studentUuids = parsedStudents
@@ -93,12 +93,12 @@ export const create = async (req: Request, res: Response) => {
           studentUuids.length !== parsedStudents.length
         ) {
           res.status(400).json({
-            error: "One or more student objects are missing a valid UUID.",
+            error: "Uno o mas estudiantes no tienen un UUID válido",
           });
           return;
         }
       } catch (error) {
-        res.status(400).json({ error: "Invalid JSON format for students." });
+        res.status(400).json({ error: "Formato de students inválido" });
       }
     }
 
@@ -108,7 +108,7 @@ export const create = async (req: Request, res: Response) => {
         const parsedPlanning = JSON.parse(planning);
         planningDataJson = JSON.stringify(parsedPlanning);
       } catch (error) {
-        res.status(400).json({ error: "Invalid JSON format for planning." });
+        res.status(400).json({ error: "Formato inválido para planning" });
       }
     }
 
