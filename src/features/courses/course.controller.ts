@@ -53,7 +53,7 @@ export const create = async (req: Request, res: Response) => {
     const { title, description, students, planning, uuid } = req.body;
 
     if (!title) {
-      res.status(400).json({ error: "Title is required." });
+      res.status(400).json({ error: "Title es requerido." });
       return;
     }
 
