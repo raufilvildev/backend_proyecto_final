@@ -75,7 +75,7 @@ export const selectByUuid = async (
         c.uuid = ? AND e.student_id = ?`;
     params.push(user.id);
   } else {
-    console.error(`User role ${user.role} not allowed`);
+    console.error(`User role ${user.role} no tiene acceso`);
   }
 
   try {
