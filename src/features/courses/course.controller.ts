@@ -1,4 +1,3 @@
-import { ICourse } from "../../interfaces/icourse.interface";
 import { Request, Response } from "express";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
