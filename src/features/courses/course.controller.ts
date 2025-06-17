@@ -43,3 +43,5 @@ export const getByUuid = async (req: Request, res: Response) => {
     res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
   }
 };
+
+export const create = async (req: Request, res: Response) => {};
