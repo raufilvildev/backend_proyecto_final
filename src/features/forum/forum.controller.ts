@@ -1,12 +1,7 @@
 import { Request, Response } from "express";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
-import Forum, {
-  IPostResponsePayload,
-  IPostThreadPayload,
-  selectThreadByUuid,
-  selectResponseByUuid,
-} from "./forum.model";
+import Forum, { IPostResponsePayload, IPostThreadPayload } from "./forum.model";
 
 export const getAllThreadsWithRepliesAndUsers = async (
   req: Request,
