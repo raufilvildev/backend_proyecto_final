@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
+import fs from "node:fs";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
-import Courses from "./course.model";
+import Courses, { CourseInsertData } from "./course.model";
 
 export const getAll = async (req: Request, res: Response) => {
   const user = req.user as IUser;
@@ -18,6 +19,7 @@ export const getAll = async (req: Request, res: Response) => {
 
     res.json(courses);
   } catch (error) {
+    console.log("error en getAll controller cursos", error);
     res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
   }
 };
@@ -40,8 +42,90 @@ export const getByUuid = async (req: Request, res: Response) => {
 
     res.json(course);
   } catch (error) {
+    console.log("error en getByUuid controller cursos", error);
     res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
   }
 };
 
-export const create = async (req: Request, res: Response) => {};
+export const create = async (req: Request, res: Response) => {
+  try {
+    const user = req.user as IUser;
+    const { title, description, students, planning, uuid } = req.body;
+
+    if (!title) {
+      res.status(400).json({ error: "Title is required." });
+      return;
+    }
+
+    let imageUrl: string | undefined = undefined;
+    if (req.file) {
+      const uploadDir = "public/uploads/courses/";
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const extension = req.file.mimetype.split("/")[1] || "";
+      const newName = `${req.file.filename}.${extension}`;
+      const newPath = `${uploadDir}${newName}`;
+      fs.renameSync(req.file.path, newPath);
+      imageUrl = newName;
+    }
+
+    let studentUuids: string[] = [];
+    if (students) {
+      try {
+        const parsedStudents = JSON.parse(students);
+        if (!Array.isArray(parsedStudents)) {
+          res.status(400).json({ error: "Students data must be an array." });
+          return;
+        }
+        studentUuids = parsedStudents
+          .map((student: any) => {
+            if (student && typeof student.uuid === "string") {
+              return student.uuid;
+            }
+            return null;
+          })
+          .filter((uuid) => uuid !== null) as string[];
+
+        if (
+          parsedStudents.length > 0 &&
+          studentUuids.length !== parsedStudents.length
+        ) {
+          res.status(400).json({
+            error: "One or more student objects are missing a valid UUID.",
+          });
+          return;
+        }
+      } catch (error) {
+        res.status(400).json({ error: "Invalid JSON format for students." });
+      }
+    }
+
+    let planningDataJson: string | undefined = undefined;
+    if (planning) {
+      try {
+        const parsedPlanning = JSON.parse(planning);
+        planningDataJson = JSON.stringify(parsedPlanning);
+      } catch (error) {
+        res.status(400).json({ error: "Invalid JSON format for planning." });
+      }
+    }
+
+    const courseDataToInsert: CourseInsertData = {
+      uuid,
+      teacher_id: user.id,
+      title,
+      description: description,
+      course_image_url: imageUrl,
+      planning: planningDataJson,
+    };
+
+    const newCourse = await Courses.insert(courseDataToInsert, studentUuids);
+
+    res.status(201).json(newCourse);
+  } catch (error) {
+    console.log("error creando curso", error);
+    res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
+  }
+};
