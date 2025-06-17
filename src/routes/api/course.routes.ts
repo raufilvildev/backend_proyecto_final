@@ -9,4 +9,6 @@ const router = Router();
 router.get("", getAll);
 router.get("/:courseUuid", getByUuid);
 
+// router.post();
+
 export default router;
