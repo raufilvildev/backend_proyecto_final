@@ -10,10 +10,7 @@ export const getAll = async (req: Request, res: Response) => {
     const courses = await Courses.selectAll(user.id);
 
     if (courses.length === 0) {
-      res.status(200).json({
-        message: "No tienes cursos asignados",
-        courses: [],
-      });
+      res.status(200).json([]);
       return;
     }
 
