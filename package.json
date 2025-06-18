@@ -4,7 +4,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "ts-node index.ts",
-    "dev": "nodemon index.ts"
+    "dev": "nodemon index.ts",
+    "fix-emails": "ts-node emails.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
