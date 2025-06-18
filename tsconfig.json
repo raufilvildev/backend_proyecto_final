@@ -8,7 +8,7 @@
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["src", "src/types"],
+  "include": ["src", "src/types", "emails.ts"],
   "ts-node": {
     "files": true
   }
