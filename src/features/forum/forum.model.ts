@@ -202,10 +202,62 @@ export const insertResponse = async (
   return result;
 };
 
+export const editThread = async (
+  uuid: string,
+  content: string,
+) => {
+  const [result] = await db.query(
+    `UPDATE forum_threads
+    SET content = ?, updated_at = NOW()
+    WHERE uuid = ?`,
+    [content, uuid]
+  )
+  return result
+}
+
+export const editResponse = async (
+  uuid: string,
+  content: string,
+) => {
+  const [result] = await db.query(
+    `UPDATE forum_posts
+    SET content = ?, updated_at = NOW()
+    WHERE uuid = ?`,
+    [content, uuid]
+  )
+  return result
+}
+
+export const deleteThread = async (
+  uuid:string
+) => {
+  const [result] = await db.query(
+    `DELETE FROM forum_threads
+    WHERE uuid = ?`,
+    [uuid]
+  )
+  return result
+}
+
+export const deleteResponse = async (
+  uuid:string
+) => {
+  const [result] = await db.query(
+    `DELETE FROM forum_posts
+    WHERE uuid = ?`,
+    [uuid]
+  )
+  return result
+}
+
 export default {
   selectAllThreadsWithReplies,
   insertThread,
   selectThreadByUuid,
   insertResponse,
   selectResponseByUuid,
+  editThread,
+  editResponse,
+  deleteThread,
+  deleteResponse
 };
