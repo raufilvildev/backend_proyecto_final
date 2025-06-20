@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
-import Forum, { IPostResponsePayload, IPostThreadPayload } from "./forum.model";
+import Forum, {
+  IPostResponsePayload,
+  IPostThreadPayload,
+  IPutResponsePayload,
+} from "./forum.model";
 
 export const getAllThreadsWithRepliesAndUsers = async (
   req: Request,
@@ -132,29 +136,29 @@ export const editThread = async (
       return;
     }
 
-    await Forum.editThread(uuid, content)
+    await Forum.editThread(uuid, content);
 
     const newResponseDetails = await Forum.selectThreadByUuid(uuid);
 
     res.status(201).json(newResponseDetails);
-  } catch (error){
+  } catch (error) {
     console.error("Error en editThread controller:", error);
     res.status(500).json({
       status: "error",
       message: GENERAL_SERVER_ERROR_MESSAGE,
     });
   }
-}
+};
 
 export const editResponse = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { content, uuid } = req.body as IPostResponsePayload;
+    const { content, user } = req.body as IPutResponsePayload;
 
-    if (!uuid) {
-      res.status(400).json({ error: "Response UUID requerido" });
+    if (!user) {
+      res.status(400).json({ error: "Informacion de usuario requerido" });
       return;
     }
 
@@ -163,26 +167,27 @@ export const editResponse = async (
       return;
     }
 
-    await Forum.editResponse(uuid, content)
+    const response = await Forum.editResponse(user.id, content);
 
-    const newResponseDetails = await Forum.selectResponseByUuid(uuid);
+    const newResponseDetails = await Forum.selectResponseByUserIdAndContent(
+      user.id,
+      content
+    );
 
     res.status(201).json(newResponseDetails);
-  } catch (error){
+  } catch (error) {
     console.error("Error en editResponse controller:", error);
     res.status(500).json({
       status: "error",
       message: GENERAL_SERVER_ERROR_MESSAGE,
     });
   }
-}
-
-
+};
 
 export const deleteThread = async (
   req: Request,
   res: Response
-): Promise <void> => {
+): Promise<void> => {
   try {
     const { threadUuid } = req.params;
 
@@ -196,22 +201,23 @@ export const deleteThread = async (
       return;
     }
 
-    await Forum.deleteThread(threadUuid)
-    res.status(201).json({ error: `Se ha eliminado correctamente el hilo con uuid ${threadUuid}`})
-
-  } catch (error){
+    await Forum.deleteThread(threadUuid);
+    res.status(201).json({
+      error: `Se ha eliminado correctamente el hilo con uuid ${threadUuid}`,
+    });
+  } catch (error) {
     console.error("Error en deleteThread controller:", error);
     res.status(500).json({
       status: "error",
       message: GENERAL_SERVER_ERROR_MESSAGE,
     });
   }
-}
+};
 
 export const deleteResponse = async (
   req: Request,
   res: Response
-): Promise <void> => {
+): Promise<void> => {
   try {
     const { responseUuid } = req.params;
 
@@ -221,22 +227,29 @@ export const deleteResponse = async (
     }
 
     if (!Forum.selectResponseByUuid(responseUuid)) {
-      res.status(404).json({ error: "No se encontró una respuesta con ese id." });
+      res
+        .status(404)
+        .json({ error: "No se encontró una respuesta con ese id." });
       return;
     }
 
-    await Forum.deleteResponse(responseUuid)
-    res.status(201).json({ error: `Se ha eliminado correctamente la respuesta con uuid ${responseUuid}`})
-
-  } catch (error){
+    await Forum.deleteResponse(responseUuid);
+    res.status(201).json({
+      error: `Se ha eliminado correctamente la respuesta con uuid ${responseUuid}`,
+    });
+  } catch (error) {
     console.error("Error en deleteResponse controller:", error);
     res.status(500).json({
       status: "error",
       message: GENERAL_SERVER_ERROR_MESSAGE,
     });
   }
-}
+};
 
-
-
-export default { getAllThreadsWithRepliesAndUsers, postThread, postResponse, editResponse, deleteResponse };
+export default {
+  getAllThreadsWithRepliesAndUsers,
+  postThread,
+  postResponse,
+  editResponse,
+  deleteResponse,
+};
