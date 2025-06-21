@@ -142,24 +142,35 @@ export const update = async (
   { first_name, last_name, birth_date, username, profile_image_url }: IUser
 ) => {
   try {
-    const result = await db.query(
-      `UPDATE users SET first_name = ?, last_name = ?, birth_date = ?, username = ?, profile_image_url = ? WHERE uuid = ?`,
-      [
-        first_name,
-        last_name,
-        birth_date,
-        username,
-        profile_image_url ? profile_image_url : "default_user_profile.svg",
-        uuid,
-      ]
-    );
-    return result;
+    // Si no llega profile_image_url no se actualiza
+    if (profile_image_url === undefined) {
+      const result = await db.query(
+        `UPDATE users SET first_name = ?, last_name = ?, birth_date = ?, username = ? WHERE uuid = ?`,
+        [first_name, last_name, birth_date, username, uuid]
+      );
+      return result;
+    } else {
+      // Actualiza todos los campos, incluyendo profile_image_url
+      const result = await db.query(
+        `UPDATE users SET first_name = ?, last_name = ?, birth_date = ?, username = ?, profile_image_url = ? WHERE uuid = ?`,
+        [
+          first_name,
+          last_name,
+          birth_date,
+          username,
+          profile_image_url ? profile_image_url : "default_user_profile.svg",
+          uuid,
+        ]
+      );
+      return result;
+    }
   } catch (error) {
     return {
       error: GENERAL_SERVER_ERROR_MESSAGE,
     };
   }
 };
+
 
 export const updateEmail = async (uuid: string, email: string) => {
   try {

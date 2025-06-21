@@ -121,11 +121,18 @@ export const edit = async (req: Request, res: Response) => {
     const extension = req.file.mimetype.split("/")[1] || "";
     newName = `${req.file.filename}.${extension}`;
   }
-  if (req.file && req.file.path) {
-    fs.renameSync(req.file.path, `./public/uploads/users/${newName}`);
+  if (req.file) {
+    const extension = req.file.mimetype.split("/")[1] || "";
+    newName = `${req.file.filename}.${extension}`;
+    if (req.file.path) {
+      fs.renameSync(req.file.path, `./public/uploads/users/${newName}`);
+    }
+    // Solo asigna profile_image_url si hay archivo nuevo
+    req.body.profile_image_url = newName;
+  } else {
+    // No asignar nada a profile_image_url si no hay archivo nuevo
+    // Deja que el req.body.profile_image_url venga como está o incluso undefined
   }
-
-  req.body.profile_image_url = newName;
 
   const { uuid } = req.user as IUser;
 
