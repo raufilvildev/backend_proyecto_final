@@ -31,15 +31,6 @@ export const getAllThreadsWithRepliesAndUsers = async (
       courseUuid
     );
 
-    if (threads.length === 0) {
-      res.status(200).json({
-        message: "No hay hilos de discusión en este curso",
-        threads: [],
-        order: validOrder,
-      });
-      return;
-    }
-
     res.status(200).json(threads);
   } catch (error) {
     res.status(500).json({
