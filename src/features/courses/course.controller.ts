@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import fs from "node:fs";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
-import Courses, { CourseInsertData } from "./course.model";
+import Courses, { CourseInsertData, CourseUpdateData } from "./course.model";
 
 export const getAll = async (req: Request, res: Response) => {
   const user = req.user as IUser;
@@ -123,6 +123,81 @@ export const create = async (req: Request, res: Response) => {
     res.status(201).json(newCourse);
   } catch (error) {
     console.log("error creando curso", error);
+    res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
+  }
+};
+
+export const update = async (req: Request, res: Response) => {
+  try {
+    const user = req.user as IUser;
+    const { uuid, title, description, students, planning } = req.body;
+
+    if (!uuid) {
+      res.status(400).json({
+        error: "El UUID del curso es requerido para la actualización.",
+      });
+    }
+
+    let imageUrl: string | undefined = undefined;
+    if (req.file) {
+      const uploadDir = "public/uploads/courses/";
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const extension = req.file.mimetype.split("/")[1] || "";
+      const newName = `${req.file.filename}.${extension}`;
+      const newPath = `${uploadDir}${newName}`;
+      fs.renameSync(req.file.path, newPath);
+      imageUrl = newName;
+    }
+
+    let studentUuids: string[] | undefined = undefined;
+    if (students) {
+      try {
+        const parsedStudents = JSON.parse(students);
+        if (!Array.isArray(parsedStudents)) {
+          res.status(400).json({ error: "Estudiantes debe ser un array" });
+        }
+        studentUuids = parsedStudents.map((s: any) => s.uuid);
+      } catch (error) {
+        res.status(400).json({ error: "Formato de students inválido" });
+      }
+    }
+
+    let planningDataJson: string | undefined = undefined;
+    if (planning) {
+      try {
+        const parsedPlanning = JSON.parse(planning);
+        planningDataJson = JSON.stringify(parsedPlanning);
+      } catch (error) {
+        res.status(400).json({ error: "Formato inválido para planning" });
+      }
+    }
+
+    const courseDataToUpdate: CourseUpdateData = {
+      title,
+      description,
+      course_image_url: imageUrl,
+      planning: planningDataJson,
+    };
+
+    const updatedCourse = await Courses.update(
+      uuid,
+      user.id,
+      courseDataToUpdate,
+      studentUuids
+    );
+
+    if (!updatedCourse) {
+      res.status(404).json({
+        error: "Curso no encontrado o no tienes permiso para editarlo.",
+      });
+    }
+
+    res.status(200).json(updatedCourse);
+  } catch (error) {
+    console.log("Error actualizando curso", error);
     res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
   }
 };
