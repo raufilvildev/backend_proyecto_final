@@ -12,6 +12,13 @@ export interface CourseInsertData {
   planning?: string;
 }
 
+export interface CourseUpdateData {
+  title?: string;
+  description?: string;
+  course_image_url?: string;
+  planning?: string;
+}
+
 export const selectAll = async (userId: number): Promise<ICourse[]> => {
   try {
     const query = `SELECT
@@ -179,15 +186,23 @@ export const insert = async (
         throw new Error("Uno o más UUIDs de estudiantes no son válidos.");
       }
 
+      const updateUserRolesQuery = `
+        UPDATE users 
+        SET role = 'student' 
+        WHERE uuid IN (?) AND role = 'general';
+      `;
+
+      await db.query(updateUserRolesQuery, [studentUuids]);
+
       const enrollmentValues = studentRows.map((student: { id: number }) => [
         student.id,
         newCourseId,
       ]);
 
-      const enrollmentsSql = `
+      const enrollmentsQuery = `
         INSERT INTO enrollments (student_id, course_id) VALUES ?;
       `;
-      await db.query(enrollmentsSql, [enrollmentValues]);
+      await db.query(enrollmentsQuery, [enrollmentValues]);
     }
 
     const [newCourseRows]: any = await db.query(
@@ -202,10 +217,115 @@ export const insert = async (
   }
 };
 
+export const update = async (
+  courseUuid: string,
+  teacherId: number,
+  courseData: CourseUpdateData,
+  newStudentUuids?: string[]
+): Promise<ICourse | null> => {
+  try {
+    const [courseRows]: any = await db.query(
+      `SELECT id FROM courses WHERE uuid = ? AND teacher_id = ?`,
+      [courseUuid, teacherId]
+    );
+
+    if (courseRows.length === 0) {
+      console.error(
+        "No se encuentra el curso con ese teacher_id y uuid de curso"
+      );
+      return null;
+    }
+
+    const courseId = courseRows[0].id;
+
+    const [currentStudents]: any = await db.query(
+      `SELECT student_id FROM enrollments WHERE course_id = ?`,
+      [courseId]
+    );
+    const currentStudentIds = currentStudents.map(
+      (student: any) => student.student_id
+    );
+
+    if (Object.keys(courseData).length > 0) {
+      await db.query(`UPDATE courses SET ? WHERE id = ?`, [
+        courseData,
+        courseId,
+      ]);
+    }
+
+    await db.query(`DELETE FROM enrollments WHERE course_id = ?`, [courseId]);
+
+    if (newStudentUuids && newStudentUuids.length > 0) {
+      await db.query(
+        `UPDATE users SET role = 'student' WHERE uuid IN (?) AND role = 'general'`,
+        [newStudentUuids]
+      );
+
+      const [studentRows]: any = await db.query(
+        `SELECT id FROM users WHERE uuid IN (?)`,
+        [newStudentUuids]
+      );
+
+      if (studentRows.length > 0) {
+        const enrollmentValues = studentRows.map((student: { id: number }) => [
+          student.id,
+          courseId,
+        ]);
+
+        await db.query(
+          `INSERT INTO enrollments (student_id, course_id) VALUES ?`,
+          [enrollmentValues]
+        );
+      }
+    }
+
+    if (currentStudentIds.length > 0) {
+      const studentsToCheck = currentStudentIds
+        .map(
+          (id: number) => `
+        SELECT 
+          ${id} as student_id, 
+          (SELECT COUNT(*) FROM enrollments WHERE student_id = ${id}) as enrollment_count
+      `
+        )
+        .join(" UNION ALL ");
+
+      const [studentsToUpdate]: any = await db.query(`
+        SELECT student_id 
+        FROM (${studentsToCheck}) as student_enrollments
+        WHERE enrollment_count = 0
+      `);
+
+      if (studentsToUpdate.length > 0) {
+        const studentIdsToUpdate = studentsToUpdate.map(
+          (student: any) => student.student_id
+        );
+        await db.query(
+          `UPDATE users SET role = 'general' 
+           WHERE id IN (?) AND role = 'student'`,
+          [studentIdsToUpdate]
+        );
+      }
+    }
+
+    const [updatedCourseRows]: any = await db.query(
+      `SELECT * FROM courses WHERE id = ?`,
+      [courseId]
+    );
+
+    return updatedCourseRows[0] as ICourse;
+  } catch (error) {
+    await db.rollback();
+    console.error("Error en el modelo de actualización de curso:", error);
+    throw error;
+  }
+};
+
 const Courses = {
   selectAll,
   selectByUuid,
   insert,
+  update,
 };
 
 export default Courses;

@@ -5,6 +5,7 @@ import {
   create,
   getAll,
   getByUuid,
+  update,
 } from "../../features/courses/course.controller";
 import { teacherRoleCheck } from "../../shared/middlewares/teacher_role_check.middleware";
 
@@ -22,6 +23,6 @@ router.post(
   create
 );
 
-// router.put();
+router.put("", upload.single("course-image"), teacherRoleCheck, update);
 
 export default router;
