@@ -118,8 +118,6 @@ export const create = async (req: Request, res: Response) => {
       planning: planningDataJson,
     };
 
-    console.log(courseDataToInsert);
-
     const newCourse = await Courses.insert(courseDataToInsert, studentUuids);
 
     res.status(201).json(newCourse);
