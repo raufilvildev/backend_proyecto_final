@@ -18,5 +18,5 @@ export interface ICourse {
   created_at: string;
   updated_at: string;
   teacher: string;
-  students: IEnrolledStudent[];
+  students?: IEnrolledStudent[];
 }

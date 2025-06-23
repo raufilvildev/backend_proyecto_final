@@ -64,8 +64,8 @@ export const selectByUuid = async (
         JSON_ARRAYAGG(
           JSON_OBJECT(
             'uuid', u_student.uuid,
-            'firstName', u_student.first_name,
-            'lastName', u_student.last_name,
+            'first_name', u_student.first_name,
+            'last_name', u_student.last_name,
             'email', u_student.email,
             'username', u_student.username
           )
