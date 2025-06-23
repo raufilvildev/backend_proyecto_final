@@ -7,7 +7,7 @@ export interface IUser {
   username: string;
   password?: string;
   profile_image_url?: string;
-  notify_by_email?: boolean;
+  notify_by_email?: 0 | 1;
   email_confirmed?: boolean;
   random_number?: string;
   role: "general" | "student" | "teacher";
