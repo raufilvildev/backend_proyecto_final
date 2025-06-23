@@ -132,7 +132,7 @@ export const edit = async (req: Request, res: Response) => {
     // Eliminar imagen anterior si existe
     const profile_image_url = user.profile_image_url;
 
-    if (profile_image_url) {
+    if (profile_image_url && profile_image_url !== "default_user_profile.svg") {
       const profile_image_complete_path = path.resolve(
         "public/uploads/users",
         profile_image_url
