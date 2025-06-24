@@ -1,48 +1,8 @@
 import { IUser } from "interfaces/iuser.interface";
 import db from "../../config/db.config";
+import { IResThread } from "interfaces/iforum.interface";
 
-export interface IPostThreadPayload {
-  title: string;
-  content: string;
-  uuid: string;
-}
-
-export interface IPostResponsePayload {
-  content: string;
-  user?: IUser;
-  uuid: string;
-}
-
-export interface IPutResponsePayload {
-  content: string;
-  user: IUser;
-}
-
-interface User {
-  uuid: string;
-  first_name: string;
-  last_name: string;
-  profile_image_url: string | null;
-  role: "student" | "teacher" | "general";
-}
-
-interface Response {
-  uuid: string;
-  user: User;
-  content: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-interface Thread {
-  uuid: string;
-  user: User;
-  title: string;
-  content: string;
-  created_at: Date;
-  updated_at: Date;
-  responses: Response[];
-}
+//
 
 export const selectAllThreadsWithReplies = async (
   order: "asc" | "desc",
@@ -103,7 +63,7 @@ export const selectAllThreadsWithReplies = async (
       db.query(selectAllResponsesQuery, [courseUuid]),
     ]);
 
-    const threadsMap = new Map<number, Thread>();
+    const threadsMap = new Map<number, IResThread>();
 
     for (const thread of threadsResult as any[]) {
       threadsMap.set(thread.thread_id, {

@@ -1,4 +1,4 @@
-interface IEnrolledStudent {
+export interface IEnrolledStudent {
   uuid: string;
   firstName: string;
   lastName: string;
@@ -19,4 +19,20 @@ export interface ICourse {
   updated_at: string;
   teacher: string;
   students?: IEnrolledStudent[];
+}
+
+export interface ICourseInsertData {
+  uuid: string;
+  teacher_id: number;
+  title: string;
+  description?: string;
+  course_image_url?: string;
+  planning?: string;
+}
+
+export interface ICourseUpdateData {
+  title?: string;
+  description?: string;
+  course_image_url?: string;
+  planning?: string;
 }
