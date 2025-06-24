@@ -1,23 +1,11 @@
-import { ICourse } from "../../interfaces/icourse.interface";
+import {
+  ICourse,
+  ICourseInsertData,
+  ICourseUpdateData,
+} from "../../interfaces/icourse.interface";
 import db from "../../config/db.config";
 import { IUser } from "interfaces/iuser.interface";
 import { decrypt } from "../../shared/utils/crypto.util";
-
-export interface CourseInsertData {
-  uuid: string;
-  teacher_id: number;
-  title: string;
-  description?: string;
-  course_image_url?: string;
-  planning?: string;
-}
-
-export interface CourseUpdateData {
-  title?: string;
-  description?: string;
-  course_image_url?: string;
-  planning?: string;
-}
 
 export const selectAll = async (userId: number): Promise<ICourse[]> => {
   try {
@@ -157,7 +145,7 @@ export const selectByUuid = async (
 };
 
 export const insert = async (
-  courseData: CourseInsertData,
+  courseData: ICourseInsertData,
   studentUuids: string[]
 ): Promise<ICourse> => {
   try {
@@ -220,7 +208,7 @@ export const insert = async (
 export const update = async (
   courseUuid: string,
   teacherId: number,
-  courseData: CourseUpdateData,
+  courseData: ICourseUpdateData,
   newStudentUuids?: string[]
 ): Promise<ICourse | null> => {
   try {

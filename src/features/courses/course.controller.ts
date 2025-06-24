@@ -2,7 +2,11 @@ import { Request, Response } from "express";
 import fs from "node:fs";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
-import Courses, { CourseInsertData, CourseUpdateData } from "./course.model";
+import Courses from "./course.model";
+import {
+  ICourseInsertData,
+  ICourseUpdateData,
+} from "../../interfaces/icourse.interface";
 
 export const getAll = async (req: Request, res: Response) => {
   const user = req.user as IUser;
@@ -109,7 +113,7 @@ export const create = async (req: Request, res: Response) => {
       }
     }
 
-    const courseDataToInsert: CourseInsertData = {
+    const courseDataToInsert: ICourseInsertData = {
       uuid,
       teacher_id: user.id,
       title,
@@ -159,7 +163,7 @@ export const update = async (req: Request, res: Response) => {
         if (!Array.isArray(parsedStudents)) {
           res.status(400).json({ error: "Estudiantes debe ser un array" });
         }
-        studentUuids = parsedStudents.map((s: any) => s.uuid);
+        studentUuids = parsedStudents.map((student: any) => student.uuid);
       } catch (error) {
         res.status(400).json({ error: "Formato de students inválido" });
       }
@@ -175,7 +179,7 @@ export const update = async (req: Request, res: Response) => {
       }
     }
 
-    const courseDataToUpdate: CourseUpdateData = {
+    const courseDataToUpdate: ICourseUpdateData = {
       title,
       description,
       course_image_url: imageUrl,
