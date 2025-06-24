@@ -2,7 +2,44 @@ import { IUser } from "interfaces/iuser.interface";
 import db from "../../config/db.config";
 import { IResThread } from "interfaces/iforum.interface";
 
-//
+export interface IPostThreadPayload {
+  title: string;
+  content: string;
+  uuid: string;
+}
+
+export interface IPostResponsePayload {
+  content: string;
+  user?: IUser;
+  uuid: string;
+  title: string
+}
+
+interface User {
+  uuid: string;
+  first_name: string;
+  last_name: string;
+  profile_image_url: string | null;
+  role: "student" | "teacher" | "general";
+}
+
+interface Response {
+  uuid: string;
+  user: User;
+  content: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+interface Thread {
+  uuid: string;
+  user: User;
+  title: string;
+  content: string;
+  created_at: Date;
+  updated_at: Date;
+  responses: Response[];
+}
 
 export const selectAllThreadsWithReplies = async (
   order: "asc" | "desc",
@@ -178,15 +215,19 @@ export const insertResponse = async (
   return result;
 };
 
-export const editThread = async (uuid: string, content: string) => {
+export const editThread = async (
+  uuid: string,
+  title: string,
+  content: string,
+) => {
   const [result] = await db.query(
     `UPDATE forum_threads
-    SET content = ?, updated_at = NOW()
+    SET content = ?, title = ?, updated_at = NOW()
     WHERE uuid = ?`,
-    [content, uuid]
-  );
-  return result;
-};
+    [content, title, uuid]
+  )
+  return result
+}
 
 export const editResponse = async (userId: number, content: string) => {
   const [result] = await db.query(

@@ -61,6 +61,7 @@ export interface IPostThreadPayload {
 
 export interface IPostResponsePayload {
   content: string;
+  title: string;
   user?: IUser;
   uuid: string;
 }
