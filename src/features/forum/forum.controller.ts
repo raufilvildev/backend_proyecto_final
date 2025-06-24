@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { IUser } from "../../interfaces/iuser.interface";
-import Forum, {
+
+import Forum from "./forum.model";
+import {
   IPostResponsePayload,
   IPostThreadPayload,
   IPutResponsePayload,
-} from "./forum.model";
+} from "../../interfaces/iforum.interface";
 
 export const getAllThreadsWithRepliesAndUsers = async (
   req: Request,
