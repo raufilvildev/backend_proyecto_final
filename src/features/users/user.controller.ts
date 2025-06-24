@@ -144,10 +144,11 @@ export const edit = async (req: Request, res: Response) => {
         console.warn("No se pudo borrar la imagen anterior: ", error.message);
       }
     }
+
+    req.body.profile_image_url = newName;
   }
 
   // Actualizar la nueva ruta en el body
-  req.body.profile_image_url = newName;
 
   const user_uuid: string = user.uuid;
 
