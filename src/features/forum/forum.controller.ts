@@ -111,7 +111,7 @@ export const editThread = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { content, uuid } = req.body as IPostResponsePayload;
+    const { content, title, uuid } = req.body as IPostResponsePayload;
 
     if (!uuid) {
       res.status(400).json({ error: "Thread UUID requerido" });
@@ -123,7 +123,12 @@ export const editThread = async (
       return;
     }
 
-    await Forum.editThread(uuid, content)
+    if (!title || typeof title !== "string" || title.trim() === "") {
+      res.status(400).json({ error: "Titulo del thread requerido" });
+      return;
+    }
+
+    await Forum.editThread(uuid, title, content)
 
     const newResponseDetails = await Forum.selectThreadByUuid(uuid);
 
@@ -167,7 +172,6 @@ export const editResponse = async (
     });
   }
 }
-
 
 
 export const deleteThread = async (
