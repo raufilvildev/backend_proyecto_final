@@ -6,6 +6,8 @@ import {
 import db from "../../config/db.config";
 import { IUser } from "interfaces/iuser.interface";
 import { decrypt } from "../../shared/utils/crypto.util";
+import fs from "fs";
+import path from "path";
 
 export const selectAll = async (userId: number): Promise<ICourse[]> => {
   try {
@@ -200,6 +202,7 @@ export const insert = async (
 
     return newCourseRows[0] as ICourse;
   } catch (error) {
+    await db.rollback();
     console.error("error en el modelo de creación de curso ");
     throw error;
   }
@@ -309,11 +312,85 @@ export const update = async (
   }
 };
 
+export const remove = async (uuid: string, teacherId: number) => {
+  try {
+    const [courseRows]: any = await db.query(
+      `SELECT id, course_image_url FROM courses WHERE uuid = ? AND teacher_id = ?`,
+      [uuid, teacherId]
+    );
+    if (courseRows === 0) {
+      throw new Error("No se encuentra el curso para su borrado");
+    }
+    const courseId = courseRows[0].id;
+    const courseImageUrl = courseRows[0].course_image_url;
+
+    const [studentRows]: any = await db.query(
+      `SELECT student_id FROM enrollments WHERE course_id = ?`,
+      [courseId]
+    );
+    const studentIds = studentRows.map((row: any) => row.student_id);
+
+    await db.query(`DELETE FROM courses WHERE id = ?`, [courseId]);
+
+    if (studentIds.length > 0) {
+      const studentsToCheck = studentIds
+        .map(
+          (id: number) => `
+            SELECT 
+              ${id} as student_id, 
+              (SELECT COUNT(*) FROM enrollments WHERE student_id = ${id}) as enrollment_count
+          `
+        )
+        .join(" UNION ALL ");
+
+      const [studentsToUpdate]: any = await db.query(`
+        SELECT student_id 
+        FROM (${studentsToCheck}) as student_enrollments
+        WHERE enrollment_count = 0
+      `);
+
+      if (studentsToUpdate.length > 0) {
+        const studentIdsToUpdate = studentsToUpdate.map(
+          (student: any) => student.student_id
+        );
+        await db.query(
+          `UPDATE users SET role = 'general' 
+           WHERE id IN (?) AND role = 'student'`,
+          [studentIdsToUpdate]
+        );
+      }
+    }
+
+    if (courseImageUrl) {
+      try {
+        const imagePath = path.join(
+          process.cwd(),
+          "public",
+          "uploads",
+          "courses",
+          courseImageUrl
+        );
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      } catch (fileError) {
+        console.error("Error al eliminar el archivo de imagen:", fileError);
+      }
+    }
+    return true;
+  } catch (error) {
+    await db.rollback();
+    console.error("Error en el modelo de eliminar curso", error);
+    throw error;
+  }
+};
+
 const Courses = {
   selectAll,
   selectByUuid,
   insert,
   update,
+  remove,
 };
 
 export default Courses;

@@ -205,3 +205,28 @@ export const update = async (req: Request, res: Response) => {
     res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
   }
 };
+
+export const remove = async (req: Request, res: Response) => {
+  try {
+    const { courseUuid } = req.params;
+    const user = req.user as IUser;
+    if (!courseUuid) {
+      res.status(400).json({
+        error: "El UUID del curso es requerido para el borrado",
+      });
+    }
+
+    const isRemoved = await Courses.remove(courseUuid, user.id);
+
+    if (isRemoved) {
+      res.status(200).json({ message: "Curso eliminado correctamente" });
+    } else {
+      res.status(404).json({
+        error: "Curso no encontrado o no tienes permiso para eliminarlo",
+      });
+    }
+  } catch (error) {
+    console.log("Error borrando curso (controller)", error);
+    res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
+  }
+};

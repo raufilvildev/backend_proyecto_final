@@ -6,6 +6,7 @@ import {
   getAll,
   getByUuid,
   update,
+  remove,
 } from "../../features/courses/course.controller";
 import { teacherRoleCheck } from "../../shared/middlewares/teacher_role_check.middleware";
 
@@ -24,5 +25,7 @@ router.post(
 );
 
 router.put("", upload.single("course-image"), teacherRoleCheck, update);
+
+router.delete("/:courseUuid", teacherRoleCheck, remove);
 
 export default router;
