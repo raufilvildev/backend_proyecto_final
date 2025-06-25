@@ -140,9 +140,14 @@ export const update = async (req: Request, res: Response) => {
       res.status(400).json({
         error: "El UUID del curso es requerido para la actualización.",
       });
+      return;
     }
 
-    let imageUrl: string | undefined = undefined;
+    const courseDataToUpdate: ICourseUpdateData = {};
+
+    if (title !== undefined) courseDataToUpdate.title = title;
+    if (description !== undefined) courseDataToUpdate.description = description;
+
     if (req.file) {
       const uploadDir = "public/uploads/courses/";
       if (!fs.existsSync(uploadDir)) {
@@ -153,7 +158,7 @@ export const update = async (req: Request, res: Response) => {
       const newName = `${req.file.filename}.${extension}`;
       const newPath = `${uploadDir}${newName}`;
       fs.renameSync(req.file.path, newPath);
-      imageUrl = newName;
+      courseDataToUpdate.course_image_url = newName;
     }
 
     let studentUuids: string[] | undefined = undefined;
@@ -162,10 +167,12 @@ export const update = async (req: Request, res: Response) => {
         const parsedStudents = JSON.parse(students);
         if (!Array.isArray(parsedStudents)) {
           res.status(400).json({ error: "Estudiantes debe ser un array" });
+          return;
         }
         studentUuids = parsedStudents.map((student: any) => student.uuid);
       } catch (error) {
         res.status(400).json({ error: "Formato de students inválido" });
+        return;
       }
     }
 
@@ -174,17 +181,12 @@ export const update = async (req: Request, res: Response) => {
       try {
         const parsedPlanning = JSON.parse(planning);
         planningDataJson = JSON.stringify(parsedPlanning);
+        courseDataToUpdate.planning = planningDataJson;
       } catch (error) {
         res.status(400).json({ error: "Formato inválido para planning" });
+        return;
       }
     }
-
-    const courseDataToUpdate: ICourseUpdateData = {
-      title,
-      description,
-      course_image_url: imageUrl,
-      planning: planningDataJson,
-    };
 
     const updatedCourse = await Courses.update(
       uuid,
@@ -197,6 +199,7 @@ export const update = async (req: Request, res: Response) => {
       res.status(404).json({
         error: "Curso no encontrado o no tienes permiso para editarlo.",
       });
+      return;
     }
 
     res.status(200).json(updatedCourse);

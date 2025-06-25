@@ -27,12 +27,12 @@ export interface ICourseInsertData {
   title: string;
   description?: string;
   course_image_url?: string;
-  planning?: string;
+  planning?: any;
 }
 
 export interface ICourseUpdateData {
   title?: string;
   description?: string;
   course_image_url?: string;
-  planning?: string;
+  planning?: any;
 }
