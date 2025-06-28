@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import { ICourse } from "../../interfaces/icourse.interface";
+import { ICourse, IUnitCourse } from "../../interfaces/icourse.interface";
 
 const getCourseHtml = (course: ICourse): string => {
   const styles = `
@@ -12,8 +12,59 @@ const getCourseHtml = (course: ICourse): string => {
     p { line-height: 1.7; font-size: 16px; }
     .description { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
     .planning-container { background-color: #f5f5f5; padding: 15px; border-radius: 8px; }
-    pre { white-space: pre-wrap; font-family: monospace; background: #fff; padding: 15px; border-radius: 6px; }
+    .unit { margin-bottom: 25px; }
+    .unit-title { font-weight: bold; font-size: 18px; color: #444; margin-bottom: 10px; background-color: #e9e9e9; padding: 8px 12px; border-radius: 5px; }
+    .section { margin-left: 20px; margin-bottom: 8px; }
+    .section-title { padding: 5px 10px; background-color: #fff; border-radius: 4px; }
   `;
+
+  // Función para renderizar la planificación del curso de forma estructurada
+  const renderPlanning = () => {
+    if (!course.planning) {
+      return "<p>No hay planificación disponible para este curso.</p>";
+    }
+
+    try {
+      // Parsear la planificación si es una cadena
+      const planningData =
+        typeof course.planning === "string"
+          ? JSON.parse(course.planning)
+          : course.planning;
+
+      // Verificar si la planificación es un array (como en IUnitCourse[])
+      if (Array.isArray(planningData)) {
+        return planningData
+          .map(
+            (unit: IUnitCourse, index: number) => `
+          <div class="unit">
+            <div class="unit-title">Unidad ${index + 1}: ${unit.title}</div>
+            ${
+              unit.sections && Array.isArray(unit.sections)
+                ? unit.sections
+                    .map(
+                      (section, sectionIndex) => `
+                <div class="section">
+                  <div class="section-title">${sectionIndex + 1}. ${
+                        section.title
+                      }</div>
+                </div>
+              `
+                    )
+                    .join("")
+                : '<div class="section">No hay secciones definidas</div>'
+            }
+          </div>
+        `
+          )
+          .join("");
+      } else {
+        return `<pre>${JSON.stringify(planningData, null, 2)}</pre>`;
+      }
+    } catch (error) {
+      console.error("Error al procesar la planificación:", error);
+      return `<p>Error al procesar la planificación del curso.</p>`;
+    }
+  };
 
   return `
         <!DOCTYPE html>
@@ -39,19 +90,7 @@ const getCourseHtml = (course: ICourse): string => {
                 
                 <h2>Planificación del Curso</h2>
                 <div class="planning-container">
-                    ${
-                      course.planning
-                        ? "<pre>" +
-                          JSON.stringify(
-                            typeof course.planning === "string"
-                              ? JSON.parse(course.planning)
-                              : course.planning,
-                            null,
-                            2
-                          ) +
-                          "</pre>"
-                        : "<p>No hay planificación disponible para este curso.</p>"
-                    }
+                    ${renderPlanning()}
                 </div>
             </div>
         </body>
