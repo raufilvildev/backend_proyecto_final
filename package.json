@@ -18,6 +18,7 @@
     "mysql2": "^3.14.1",
     "nodemailer": "^7.0.3",
     "puppeteer": "^24.11.1",
+    "puppeteer-core": "^24.11.1",
     "yup": "^1.6.1"
   },
   "devDependencies": {

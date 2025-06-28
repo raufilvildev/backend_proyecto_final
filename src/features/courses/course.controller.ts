@@ -246,7 +246,6 @@ export const exportAsPdf = async (req: Request, res: Response) => {
     }
 
     const course = await Courses.selectByUuid(courseUuid, user);
-
     if (!course) {
       res
         .status(404)
