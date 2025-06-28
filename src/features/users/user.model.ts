@@ -19,7 +19,7 @@ export const selectBy = async (
   if (field === "email") value = encrypt(value as string);
 
   const [result] = await db.query(
-    `SELECT uuid, id, first_name, last_name, birth_date, email, username, profile_image_url, email_confirmed, role FROM users WHERE ${field} = ?`,
+    `SELECT uuid, id, first_name, last_name, birth_date, email, username, notify_by_email, profile_image_url, email_confirmed, role FROM users WHERE ${field} = ?`,
     [value]
   );
 
@@ -139,21 +139,39 @@ export const updatePassword = async (user_uuid: string, password: string) => {
 
 export const update = async (
   uuid: string,
-  { first_name, last_name, birth_date, username, profile_image_url }: IUser
+  {
+    first_name,
+    last_name,
+    birth_date,
+    username,
+    notify_by_email = 1,
+    profile_image_url,
+  }: IUser
 ) => {
   try {
-    const result = await db.query(
-      `UPDATE users SET first_name = ?, last_name = ?, birth_date = ?, username = ?, profile_image_url = ? WHERE uuid = ?`,
-      [
-        first_name,
-        last_name,
-        birth_date,
-        username,
-        profile_image_url ? profile_image_url : "default_user_profile.svg",
-        uuid,
-      ]
-    );
-    return result;
+    // Si no llega profile_image_url no se actualiza
+    if (profile_image_url === undefined) {
+      const result = await db.query(
+        `UPDATE users SET first_name = ?, last_name = ?, birth_date = ?, username = ?, notify_by_email = ? WHERE uuid = ?`,
+        [first_name, last_name, birth_date, username, notify_by_email, uuid]
+      );
+      return result;
+    } else {
+      // Actualiza todos los campos, incluyendo profile_image_url
+      const result = await db.query(
+        `UPDATE users SET first_name = ?, last_name = ?, birth_date = ?, username = ?, notify_by_email = ?, profile_image_url = ? WHERE uuid = ?`,
+        [
+          first_name,
+          last_name,
+          birth_date,
+          username,
+          notify_by_email,
+          profile_image_url ? profile_image_url : "default_user_profile.svg",
+          uuid,
+        ]
+      );
+      return result;
+    }
   } catch (error) {
     return {
       error: GENERAL_SERVER_ERROR_MESSAGE,

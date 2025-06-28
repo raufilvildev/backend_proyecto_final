@@ -8,7 +8,6 @@ const router = Router();
 // GET api/tasks/:course_uuid?filter=today|week|month -> getTasksByCourseUuid (si filter=today, mostrar también tareas pasadas no completadas)
 // GET api/tasks/courses?filter=today|week|month ->
 
-
 // ¡¡Devolver una advertencia de que existe solapamiento de horarios!!
 // POST api/tasks -> Se asigna al usuario.
 // POST api/tasks/?course_uuid -> Solo la puede hacer el profesor y se debe asignar tanto al profesor como a sus alumnos.
@@ -22,7 +21,7 @@ router.get("/:courseuuid", checkToken, getAllTasksByCourseUUID)
 router.get("", checkToken, getAllTasks)
 router.get("", checkToken)
 
-router.post("", checkToken, createTask)
-router.post("/:courseuuid", checkToken, createTaskByTeacher)
+router.post("", createTask);
+router.post("/:courseuuid", createTaskByTeacher);
 
 export default router;

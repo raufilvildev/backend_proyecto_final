@@ -1,5 +1,6 @@
 import { IUser } from "interfaces/iuser.interface";
 import db from "../../config/db.config";
+import { IResThread } from "interfaces/iforum.interface";
 
 export interface IPostThreadPayload {
   title: string;
@@ -99,7 +100,7 @@ export const selectAllThreadsWithReplies = async (
       db.query(selectAllResponsesQuery, [courseUuid]),
     ]);
 
-    const threadsMap = new Map<number, Thread>();
+    const threadsMap = new Map<number, IResThread>();
 
     for (const thread of threadsResult as any[]) {
       threadsMap.set(thread.thread_id, {
@@ -156,6 +157,17 @@ export const selectResponseByUuid = async (uuid: string) => {
   const [result] = await db.query("select * from forum_posts where uuid = ?", [
     uuid,
   ]);
+  return result;
+};
+
+export const selectResponseByUserIdAndContent = async (
+  userId: number,
+  content: string
+) => {
+  const [result] = await db.query(
+    "select * from forum_posts where content = ? AND user_id = ?",
+    [content, userId]
+  );
   return result;
 };
 
@@ -217,49 +229,43 @@ export const editThread = async (
   return result
 }
 
-export const editResponse = async (
-  uuid: string,
-  content: string,
-) => {
+export const editResponse = async (userId: number, content: string) => {
   const [result] = await db.query(
     `UPDATE forum_posts
     SET content = ?, updated_at = NOW()
-    WHERE uuid = ?`,
-    [content, uuid]
-  )
-  return result
-}
+    WHERE user_id = ?`,
+    [content, userId]
+  );
+  return result;
+};
 
-export const deleteThread = async (
-  uuid:string
-) => {
+export const deleteThread = async (uuid: string) => {
   const [result] = await db.query(
     `DELETE FROM forum_threads
     WHERE uuid = ?`,
     [uuid]
-  )
-  return result
-}
+  );
+  return result;
+};
 
-export const deleteResponse = async (
-  uuid:string
-) => {
+export const deleteResponse = async (uuid: string) => {
   const [result] = await db.query(
     `DELETE FROM forum_posts
     WHERE uuid = ?`,
     [uuid]
-  )
-  return result
-}
+  );
+  return result;
+};
 
 export default {
   selectAllThreadsWithReplies,
   insertThread,
   selectThreadByUuid,
+  selectResponseByUserIdAndContent,
   insertResponse,
   selectResponseByUuid,
   editThread,
   editResponse,
   deleteThread,
-  deleteResponse
+  deleteResponse,
 };

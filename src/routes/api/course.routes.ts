@@ -5,6 +5,9 @@ import {
   create,
   getAll,
   getByUuid,
+  update,
+  remove,
+  exportAsPdf,
 } from "../../features/courses/course.controller";
 import { teacherRoleCheck } from "../../shared/middlewares/teacher_role_check.middleware";
 
@@ -13,6 +16,7 @@ const router = Router();
 
 router.get("", getAll);
 router.get("/:courseUuid", getByUuid);
+router.get("/:courseUuid/export-pdf", exportAsPdf);
 
 router.post(
   "",
@@ -21,5 +25,9 @@ router.post(
   generateUuid,
   create
 );
+
+router.put("", upload.single("course-image"), teacherRoleCheck, update);
+
+router.delete("/:courseUuid", teacherRoleCheck, remove);
 
 export default router;

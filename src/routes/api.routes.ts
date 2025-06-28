@@ -13,6 +13,6 @@ router.use("/user", userRoutes);
 router.use("/authorization", authorizationRoutes);
 router.use("/courses", checkToken, generalRoleCheck, courseRoutes);
 router.use("/forum", checkToken, generalRoleCheck, forumRoutes);
-router.use("/tasks",checkToken, generalRoleCheck, tasksRoutes);
+router.use("/tasks", checkToken, tasksRoutes);
 
 export default router;

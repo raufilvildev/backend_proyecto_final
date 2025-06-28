@@ -6,6 +6,7 @@ import { IUser } from "../../interfaces/iuser.interface";
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import { decrypt } from "../../shared/utils/crypto.util";
 import fs from "node:fs";
+import path from "node:path";
 
 export const getByUuid = async (req: Request, res: Response) => {
   if (!req.user) {
@@ -116,20 +117,40 @@ export const changePassword = async (req: Request, res: Response) => {
 };
 
 export const edit = async (req: Request, res: Response) => {
+  const user = req.user as IUser;
   let newName = "";
+
   if (req.file) {
     const extension = req.file.mimetype.split("/")[1] || "";
     newName = `${req.file.filename}.${extension}`;
+
+    // Renombrar el archivo subido
+    if (req.file.path) {
+      fs.renameSync(req.file.path, `./public/uploads/users/${newName}`);
+    }
+
+    // Eliminar imagen anterior si existe
+    const profile_image_url = user.profile_image_url;
+
+    if (profile_image_url && profile_image_url !== "default_user_profile.svg") {
+      const profile_image_complete_path = path.resolve(
+        "public/uploads/users",
+        profile_image_url
+      );
+
+      try {
+        fs.unlinkSync(profile_image_complete_path);
+      } catch (error: any) {
+        console.warn("No se pudo borrar la imagen anterior: ", error.message);
+      }
+    }
+
+    req.body.profile_image_url = newName;
   }
-  if (req.file && req.file.path) {
-    fs.renameSync(req.file.path, `./public/uploads/users/${newName}`);
-  }
 
-  req.body.profile_image_url = newName;
+  // Actualizar la nueva ruta en el body
 
-  const { uuid } = req.user as IUser;
-
-  const user_uuid: string = uuid;
+  const user_uuid: string = user.uuid;
 
   try {
     const result = await User.update(user_uuid, req.body);
