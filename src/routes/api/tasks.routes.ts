@@ -1,9 +1,5 @@
 import { Router } from "express";
-import {
-  getAll,
-  createTask,
-  createTaskByTeacher,
-} from "../../features/tasks/tasks.controller";
+import { getAllTasksByCourseUUID, getAllTasks, createTask, createTaskByTeacher } from "../../features/tasks/tasks.controller";
 import { checkToken } from "../../features/authorization/authorization.middleware";
 
 const router = Router();
@@ -21,7 +17,9 @@ const router = Router();
 
 // DELETE api/tasks/:task_uuid
 
-router.get("/:courseuuid", getAll);
+router.get("/:courseuuid", checkToken, getAllTasksByCourseUUID)
+router.get("", checkToken, getAllTasks)
+router.get("", checkToken)
 
 router.post("", createTask);
 router.post("/:courseuuid", createTaskByTeacher);
