@@ -262,7 +262,7 @@ export const exportAsPdf = async (req: Request, res: Response) => {
       "Content-Disposition",
       `attachment; filename=informe_${safeTitle}.pdf`
     );
-    res.send(pdfBuffer);
+    res.status(200).send(pdfBuffer);
   } catch (error) {
     console.log("Error exportando curso a PDF (controller)", error);
     res.status(500).json({ error: "Error al generar el informe en PDF." });
