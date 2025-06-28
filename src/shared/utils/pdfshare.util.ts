@@ -92,22 +92,18 @@ const getCourseHtml = (course: ICourse): string => {
     }
   `;
 
-  // Función para renderizar la planificación del curso de forma estructurada
   const renderPlanning = () => {
     if (!course.planning) {
       return "<p>No hay planificación disponible para este curso.</p>";
     }
 
     try {
-      // Parsear la planificación si es una cadena
       let planningData;
 
       if (typeof course.planning === "string") {
         try {
-          // Intenta parsear normalmente
           planningData = JSON.parse(course.planning);
         } catch (parseError) {
-          // Si falla, intenta arreglar el formato JSON inválido
           try {
             const fixedJsonString = course.planning.replace(/(\w+):/g, '"$1":');
             planningData = JSON.parse(fixedJsonString);
@@ -120,7 +116,6 @@ const getCourseHtml = (course: ICourse): string => {
         planningData = course.planning;
       }
 
-      // Verificar si la planificación es un array (como en IUnitCourse[])
       if (Array.isArray(planningData)) {
         return planningData
           .map(
