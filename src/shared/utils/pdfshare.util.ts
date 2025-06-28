@@ -1,7 +1,5 @@
 import puppeteer from "puppeteer";
 import { ICourse } from "../../interfaces/icourse.interface";
-import fs from "fs";
-import path from "path";
 
 const getCourseHtml = (course: ICourse): string => {
   const styles = `
