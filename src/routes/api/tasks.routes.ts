@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { getAll, createTask, createTaskByTeacher } from "../../features/tasks/tasks.controller";
+import {
+  getAll,
+  createTask,
+  createTaskByTeacher,
+} from "../../features/tasks/tasks.controller";
 import { checkToken } from "../../features/authorization/authorization.middleware";
 
 const router = Router();
@@ -7,7 +11,6 @@ const router = Router();
 // GET api/tasks?filter=today|week|month -> getAll (si filter=today, mostrar también tareas pasadas no completadas)
 // GET api/tasks/:course_uuid?filter=today|week|month -> getTasksByCourseUuid (si filter=today, mostrar también tareas pasadas no completadas)
 // GET api/tasks/courses?filter=today|week|month ->
-
 
 // ¡¡Devolver una advertencia de que existe solapamiento de horarios!!
 // POST api/tasks -> Se asigna al usuario.
@@ -18,10 +21,9 @@ const router = Router();
 
 // DELETE api/tasks/:task_uuid
 
-router.get("/:courseuuid", checkToken, getAll)
-router.get("", checkToken)
+router.get("/:courseuuid", getAll);
 
-router.post("", checkToken, createTask)
-router.post("/:courseuuid", checkToken, createTaskByTeacher)
+router.post("", createTask);
+router.post("/:courseuuid", createTaskByTeacher);
 
 export default router;

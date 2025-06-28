@@ -7,6 +7,7 @@ import {
   ICourseInsertData,
   ICourseUpdateData,
 } from "../../interfaces/icourse.interface";
+import { generateCoursePdf } from "../../shared/utils/pdfshare.util";
 
 export const getAll = async (req: Request, res: Response) => {
   const user = req.user as IUser;
@@ -231,5 +232,39 @@ export const remove = async (req: Request, res: Response) => {
   } catch (error) {
     console.log("Error borrando curso (controller)", error);
     res.status(500).json({ error: GENERAL_SERVER_ERROR_MESSAGE });
+  }
+};
+
+export const exportAsPdf = async (req: Request, res: Response) => {
+  try {
+    const { courseUuid } = req.params;
+    const user = req.user as IUser;
+
+    if (!courseUuid) {
+      res.status(400).json({ error: "Course UUID es requerido" });
+      return;
+    }
+
+    const course = await Courses.selectByUuid(courseUuid, user);
+
+    if (!course) {
+      res
+        .status(404)
+        .json({ error: "No se encuentra el curso o no tienes acceso." });
+      return;
+    }
+
+    const pdfBuffer = await generateCoursePdf(course);
+
+    const safeTitle = course.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=informe_${safeTitle}.pdf`
+    );
+    res.status(200).send(pdfBuffer);
+  } catch (error) {
+    console.log("Error exportando curso a PDF (controller)", error);
+    res.status(500).json({ error: "Error al generar el informe en PDF." });
   }
 };
