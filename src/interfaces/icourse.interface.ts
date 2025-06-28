@@ -36,3 +36,10 @@ export interface ICourseUpdateData {
   course_image_url?: string;
   planning?: any;
 }
+
+export interface IUnitCourse {
+  title: string;
+  sections: {
+    title: string;
+  }[];
+}
