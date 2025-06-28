@@ -2,20 +2,94 @@ import puppeteer from "puppeteer";
 import { ICourse, IUnitCourse } from "../../interfaces/icourse.interface";
 
 const getCourseHtml = (course: ICourse): string => {
+  // Aplicando los colores del frontend
   const styles = `
-    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 0; }
-    .container { margin: 40px; }
-    .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
-    h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
-    h2 { color: #555; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 35px; font-size: 22px; }
-    .teacher { font-size: 18px; color: #666; text-align: center; margin-bottom: 30px; font-style: italic; }
-    p { line-height: 1.7; font-size: 16px; }
-    .description { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
-    .planning-container { background-color: #f5f5f5; padding: 15px; border-radius: 8px; }
-    .unit { margin-bottom: 25px; }
-    .unit-title { font-weight: bold; font-size: 18px; color: #444; margin-bottom: 10px; background-color: #e9e9e9; padding: 8px 12px; border-radius: 5px; }
-    .section { margin-left: 20px; margin-bottom: 8px; }
-    .section-title { padding: 5px 10px; background-color: #fff; border-radius: 4px; }
+    body { 
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+      color: #2c2c2c; /* --color-text-main */
+      margin: 0; 
+      padding: 0; 
+      background-color: #ffffff; /* --color-background */
+    }
+    .container { 
+      margin: 40px; 
+    }
+    .header { 
+      text-align: center; 
+      border-bottom: 2px solid #dddddd; /* --color-border */
+      padding-bottom: 20px; 
+      margin-bottom: 30px; 
+    }
+    h1 { 
+      color: #2c2c2c; /* --color-text-main */
+      font-size: 28px; 
+      margin-bottom: 10px; 
+    }
+    h2 { 
+      color: #6f6f6f; /* --color-text-secondary */
+      border-bottom: 1px solid #dddddd; /* --color-border */
+      padding-bottom: 8px; 
+      margin-top: 35px; 
+      font-size: 22px; 
+    }
+    .teacher { 
+      font-size: 18px; 
+      color: #6f6f6f; /* --color-text-secondary */
+      text-align: center; 
+      margin-bottom: 30px; 
+      font-style: italic; 
+    }
+    p { 
+      line-height: 1.7; 
+      font-size: 16px; 
+      color: #2c2c2c; /* --color-text-main */
+    }
+    .description { 
+      background-color: #f8f5fc; /* --color-panel */
+      padding: 20px; 
+      border-radius: 8px; 
+      margin: 20px 0; 
+      border: 1px solid #dddddd; /* --color-border */
+    }
+    .planning-container { 
+      background-color: #f8f5fc; /* --color-panel */
+      padding: 15px; 
+      border-radius: 8px; 
+      border: 1px solid #dddddd; /* --color-border */
+    }
+    .unit { 
+      margin-bottom: 25px; 
+    }
+    .unit-title { 
+      font-weight: bold; 
+      font-size: 18px; 
+      color: #2c2c2c; /* --color-text-main */
+      margin-bottom: 10px; 
+      background-color: #d6c3ff; /* --color-hover */
+      padding: 8px 12px; 
+      border-radius: 5px; 
+    }
+    .section { 
+      margin-left: 20px; 
+      margin-bottom: 8px; 
+    }
+    .section-title { 
+      padding: 5px 10px; 
+      background-color: #ffffff; /* --color-background */
+      border-radius: 4px; 
+      border: 1px solid #dddddd; /* --color-border */
+      color: #6f6f6f; /* --color-text-secondary */
+    }
+    pre { 
+      white-space: pre-wrap; 
+      font-family: monospace; 
+      background-color: #ffffff; /* --color-background */
+      padding: 15px; 
+      border-radius: 6px; 
+      border: 1px solid #dddddd; /* --color-border */
+      font-size: 14px;
+      color: #6f6f6f; /* --color-text-secondary */
+    }
   `;
 
   // Función para renderizar la planificación del curso de forma estructurada
@@ -26,10 +100,25 @@ const getCourseHtml = (course: ICourse): string => {
 
     try {
       // Parsear la planificación si es una cadena
-      const planningData =
-        typeof course.planning === "string"
-          ? JSON.parse(course.planning)
-          : course.planning;
+      let planningData;
+
+      if (typeof course.planning === "string") {
+        try {
+          // Intenta parsear normalmente
+          planningData = JSON.parse(course.planning);
+        } catch (parseError) {
+          // Si falla, intenta arreglar el formato JSON inválido
+          try {
+            const fixedJsonString = course.planning.replace(/(\w+):/g, '"$1":');
+            planningData = JSON.parse(fixedJsonString);
+          } catch (fixError) {
+            console.error("No se pudo arreglar el JSON:", fixError);
+            return "<p>Error al procesar la planificación del curso.</p>";
+          }
+        }
+      } else {
+        planningData = course.planning;
+      }
 
       // Verificar si la planificación es un array (como en IUnitCourse[])
       if (Array.isArray(planningData)) {
