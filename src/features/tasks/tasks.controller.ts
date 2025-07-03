@@ -117,11 +117,12 @@ export const createTaskByTeacher = async (
   res: Response
 ) => {
   try {
+    
     const { courseuuid } = req.params
     const user = req.user as IUser
+    const role = user.role
     const userId = user.id
     const { uuid, course_id, title, description, due_date, time_start, time_end, category, is_urgent, is_important, subtasks} = req.body
-
     if (!courseuuid) {
       res.status(400).json({ error: "El course_uuid es obligatorio"})
       return
@@ -137,7 +138,8 @@ export const createTaskByTeacher = async (
       return;
     }
 
-    const taskInsertData : ITaskInsertData = {
+    if (role === "teacher") {
+      const taskInsertData : ITaskInsertData = {
         uuid,
         course_id,
         title,
@@ -156,6 +158,9 @@ export const createTaskByTeacher = async (
     const newTask = await Tasks.createTaskByTeacher(courseuuid, userId, taskInsertData, subTaskInsertData)
 
     res.status(200).json(newTask);
+    } else {
+      res.status(400).json({ error: "Solo pueden crear estas tareas los profesores"})
+    }
   } catch (error) {
       res.status(500).json({
       status: "error",
