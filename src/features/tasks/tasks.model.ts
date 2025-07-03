@@ -1,6 +1,6 @@
-import Courses from "features/courses/course.model";
 import db from "../../config/db.config";
 import { ITaskInsertData, ISubtasksInsertData } from "interfaces/itask.interface";
+import { v4 as uuidv4 } from 'uuid';
 
 interface Task {
   id: number;
@@ -21,196 +21,164 @@ interface Task {
 }
 
 interface SubTask {
-    id: number;
-    uuid: string;
-    task_id: number;
-    title: string;
-    is_completed: number;
-    created_at: Date;
-    updated_at: Date;
+  id: number;
+  uuid: string;
+  task_id: number;
+  title: string;
+  is_completed: number;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export const selectAllTasks = async (
-    userId : number,
-    filter: "today" | "week" | "month"
+  userId: number,
+  filter: "today" | "week" | "month"
 ) => {
-    let filter_clause = {
-        today : "AND due_date <= CURDATE()",
-        week: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 7 DAY) OR due_date IS NULL)",
-        month: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)"
-    }
+  const filter_clause = {
+    today: "AND due_date <= CURDATE()",
+    week: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 7 DAY) OR due_date IS NULL)",
+    month: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)"
+  };
 
-    const filter_sql = filter_clause[filter]
+  const filter_sql = filter_clause[filter];
 
-    const selectAllTasksQuery = 
-    `SELECT t.id,
-    t.user_id,
-    t.course_id,
-    t.category,
-    t.title,
-    t.description,
-    t.due_date,
-    t.time_start,
-    t.time_end,
-    t.is_urgent,
-    t.is_important,
-    t.is_completed,
-    t.created_at,
-    t.updated_at
+  const selectAllTasksQuery = `
+    SELECT t.id,
+           t.user_id,
+           t.course_id,
+           t.category,
+           t.title,
+           t.description,
+           t.due_date,
+           t.time_start,
+           t.time_end,
+           t.is_urgent,
+           t.is_important,
+           t.is_completed,
+           t.created_at,
+           t.updated_at
     FROM tasks t
-    LEFT JOIN subtasks st on t.id = st.task_id 
     WHERE t.user_id = ? ${filter_sql}
-    ORDER BY due_date ASC`
+    ORDER BY due_date ASC`;
 
-    const selectAllSubTasksQuery = `
+  const selectAllSubTasksQuery = `
     SELECT st.uuid,
-    st.task_id,
-    st.title,
-    st.is_completed,
-    st.created_at,
-    st.updated_at
+           st.task_id,
+           st.title,
+           st.is_completed,
+           st.created_at,
+           st.updated_at
     FROM subtasks st
-    LEFT JOIN tasks t on t.id = st.task_id
-    WHERE t.user_id = ?`
+    LEFT JOIN tasks t ON t.id = st.task_id
+    WHERE t.user_id = ?`;
 
-    const [[tasksResult], [subtasksResult]] = await Promise.all([
-      db.query(selectAllTasksQuery, [userId]),
-      db.query(selectAllSubTasksQuery, [userId]),
-    ]);
+  const [[tasksResult], [subtasksResult]] = await Promise.all([
+    db.query(selectAllTasksQuery, [userId]),
+    db.query(selectAllSubTasksQuery, [userId]),
+  ]);
 
-    const taskMap = new Map<number, Task>();
+  const taskMap = new Map<number, Task>();
 
-    for (const task of tasksResult as Task[]) {
-        taskMap.set(task.id, {
-            id: task.id,
-            user_id: task.user_id,
-            course_id: task.course_id,
-            category: task.category,
-            title: task.title,
-            description: task.description,
-            due_date: task.due_date,
-            time_start: task.time_start,
-            time_end: task.time_end,
-            is_urgent: task.is_urgent,
-            is_important: task.is_important,
-            is_completed: task.is_completed,
-            created_at: task.created_at,
-            updated_at: task.updated_at,
-            subtasks: []
-        })
+  for (const task of tasksResult as Task[]) {
+    taskMap.set(task.id, {
+      ...task,
+      subtasks: [],
+    });
+  }
+
+  for (const subtask of subtasksResult as SubTask[]) {
+    const task = taskMap.get(subtask.task_id);
+    if (task) {
+      task.subtasks.push(subtask);
     }
+  }
 
-    for (const subtask of subtasksResult as SubTask[]) {
-        const task = taskMap.get(subtask.task_id);
-        if (task) {
-            task.subtasks.push(subtask);
-        }
-    }
+  return Array.from(taskMap.values());
+};
 
-    return Array.from(taskMap.values());
-}
-
-export const selectAllTasksByCourseUuid = async  (
-    course_uuid : string,
-    filter: "today" | "week" | "month"
+export const selectAllTasksByCourseUuid = async (
+  course_uuid: string,
+  filter: "today" | "week" | "month"
 ) => {
-    let filter_clause = {
-        today : "AND due_date <= CURDATE()",
-        week: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 7 DAY) OR due_date IS NULL)",
-        month: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)"
-    }
+  const filter_clause = {
+    today: "AND due_date <= CURDATE()",
+    week: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 7 DAY) OR due_date IS NULL)",
+    month: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)"
+  };
 
-    const filter_sql = filter_clause[filter]
-    
-    const selectAllTasksQuery = 
-    `SELECT t.id,
-    t.user_id,
-    t.course_id,
-    t.category,
-    t.title,
-    t.description,
-    t.due_date,
-    t.time_start,
-    t.time_end,
-    t.is_urgent,
-    t.is_important,
-    t.is_completed,
-    t.created_at,
-    t.updated_at
+  const filter_sql = filter_clause[filter];
+
+  const selectAllTasksQuery = `
+    SELECT t.id,
+           t.user_id,
+           t.course_id,
+           t.category,
+           t.title,
+           t.description,
+           t.due_date,
+           t.time_start,
+           t.time_end,
+           t.is_urgent,
+           t.is_important,
+           t.is_completed,
+           t.created_at,
+           t.updated_at
     FROM tasks t
-    LEFT JOIN subtasks st on t.id = st.task_id 
     LEFT JOIN courses c ON t.course_id = c.id
     WHERE c.uuid = ? ${filter_sql}
-    ORDER BY due_date ASC`
+    ORDER BY due_date ASC`;
 
-    const selectAllSubTasksQuery = `
+  const selectAllSubTasksQuery = `
     SELECT st.uuid,
-    st.task_id,
-    st.title,
-    st.is_completed,
-    st.created_at,
-    st.updated_at
+           st.task_id,
+           st.title,
+           st.is_completed,
+           st.created_at,
+           st.updated_at
     FROM subtasks st
-    LEFT JOIN tasks t on t.id = st.task_id
+    LEFT JOIN tasks t ON t.id = st.task_id
     LEFT JOIN courses c ON t.course_id = c.id
-    WHERE c.uuid = ?`
+    WHERE c.uuid = ?`;
 
+  const [[tasksResult], [subtasksResult]] = await Promise.all([
+    db.query(selectAllTasksQuery, [course_uuid]),
+    db.query(selectAllSubTasksQuery, [course_uuid]),
+  ]);
 
-    const [[tasksResult], [subtasksResult]] = await Promise.all([
-      db.query(selectAllTasksQuery, [course_uuid]),
-      db.query(selectAllSubTasksQuery, [course_uuid]),
-    ]);
+  const taskMap = new Map<number, Task>();
 
-    const taskMap = new Map<number, Task>();
+  for (const task of tasksResult as Task[]) {
+    taskMap.set(task.id, {
+      ...task,
+      subtasks: [],
+    });
+  }
 
-    for (const task of tasksResult as Task[]) {
-        taskMap.set(task.id, {
-            id: task.id,
-            user_id: task.user_id,
-            course_id: task.course_id,
-            category: task.category,
-            title: task.title,
-            description: task.description,
-            due_date: task.due_date,
-            time_start: task.time_start,
-            time_end: task.time_end,
-            is_urgent: task.is_urgent,
-            is_important: task.is_important,
-            is_completed: task.is_completed,
-            created_at: task.created_at,
-            updated_at: task.updated_at,
-            subtasks: []
-        })
+  for (const subtask of subtasksResult as SubTask[]) {
+    const task = taskMap.get(subtask.task_id);
+    if (task) {
+      task.subtasks.push(subtask);
     }
+  }
 
-    for (const subtask of subtasksResult as SubTask[]) {
-        const task = taskMap.get(subtask.task_id);
-        if (task) {
-            task.subtasks.push(subtask);
-        }
-    }
-
-    return Array.from(taskMap.values());
-}
+  return Array.from(taskMap.values());
+};
 
 export const createTask = async (
-    userId : number,
-    taskData: ITaskInsertData,
-    subTasksData: ISubtasksInsertData[]
+  userId: number,
+  taskData: ITaskInsertData,
+  subTasksData: ISubtasksInsertData[]
 ) => {
-    const taskQuery = `
+  const uuid = taskData.uuid || uuidv4();
+  const is_important = taskData.is_important ? 1 : 0;
+  const is_urgent = taskData.is_urgent ? 1 : 0;
+
+  const taskQuery = `
     INSERT INTO tasks (uuid, user_id, course_id, title, description, due_date, time_start, time_end, category, is_urgent, is_important, is_completed, created_at, updated_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,0,NOW(),NOW())`
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW(), NOW())`;
 
-    const subTaskQuery = `
-    INSERT INTO subtasks (uuid, task_id, title, is_completed, created_at, updated_at)
-    VALUES (?,?,?,0,NOW(),NOW())`
-
-
-    const is_important = taskData.is_important === true ? 1 : 0;
-    const is_urgent = taskData.is_urgent === true ? 1 : 0;
-
-    const [taskResult]: any = await db.query(taskQuery, [taskData.uuid,
+  const [taskResult]: any = await db.query(taskQuery, [
+    uuid,
     userId,
     null,
     taskData.title,
@@ -219,146 +187,172 @@ export const createTask = async (
     taskData.time_start,
     taskData.time_end,
     taskData.category,
+    is_urgent,
     is_important,
-    is_urgent])
+  ]);
 
-    const taskId = taskResult.insertId;
-    
-    if (Array.isArray(subTasksData) && subTasksData.length > 0) {
-        for (const subtask of subTasksData) {
-            await db.query(subTaskQuery,
-                [subtask.uuid,taskId, subtask.title]
-            );
-        }
-    }
+  const taskId = taskResult.insertId;
 
-    const taskMap = new Map<number, Task>();
+  const subTaskQuery = `
+    INSERT INTO subtasks (uuid, task_id, title, is_completed, created_at, updated_at)
+    VALUES (?, ?, ?, 0, NOW(), NOW())`;
 
-    const [createdTaskRows]: any = await db.query(
-        `SELECT * FROM tasks WHERE id = ?`, [taskId]
-    );
+  for (const subtask of subTasksData) {
+    const subtaskUuid = subtask.uuid || uuidv4();
+    await db.query(subTaskQuery, [subtaskUuid, taskId, subtask.title]);
+  }
 
-    const [createdSubtasks]: any = await db.query(
-        `SELECT * FROM subtasks WHERE task_id = ?`, [taskId]
-    );
+  const [createdTaskRows]: any = await db.query(`SELECT * FROM tasks WHERE id = ?`, [taskId]);
+  const [createdSubtasks]: any = await db.query(`SELECT * FROM subtasks WHERE task_id = ?`, [taskId]);
 
-    for (const task of createdTaskRows as Task[]) {
-        taskMap.set(task.id, {
-            id: task.id,
-            user_id: task.user_id,
-            course_id: task.course_id,
-            category: task.category,
-            title: task.title,
-            description: task.description,
-            due_date: task.due_date,
-            time_start: task.time_start,
-            time_end: task.time_end,
-            is_urgent: task.is_urgent,
-            is_important: task.is_important,
-            is_completed: task.is_completed,
-            created_at: task.created_at,
-            updated_at: task.updated_at,
-            subtasks: []
-        });
-    }
-
-    for (const subtask of createdSubtasks as SubTask[]) {
-        const task = taskMap.get(subtask.task_id);
-        if (task) {
-            task.subtasks.push(subtask);
-        }
-    }
-
-    return Array.from(taskMap.values());
-}
-
+  return [{
+    ...createdTaskRows[0],
+    subtasks: createdSubtasks,
+  }];
+};
 
 export const createTaskByTeacher = async (
-    course_uuid : string,
-    userId : number,
-    taskData: ITaskInsertData,
-    subTasksData: ISubtasksInsertData[]
+  course_uuid: string,
+  userId: number,
+  taskData: ITaskInsertData,
+  subTasksData: ISubtasksInsertData[]
 ) => {
-    const is_important = taskData.is_important === true ? 1 : 0;
-    const is_urgent = taskData.is_urgent === true ? 1 : 0;
+  const uuid = taskData.uuid || uuidv4();
+  const is_important = taskData.is_important ? 1 : 0;
+  const is_urgent = taskData.is_urgent ? 1 : 0;
 
-    const [courseRows] : any = await db.query (`SELECT id FROM courses WHERE uuid = ?`, course_uuid)
-    const courseId = courseRows[0]?.id;
+  const [courseRows]: any = await db.query(`SELECT id FROM courses WHERE uuid = ?`, [course_uuid]);
+  const courseId = courseRows[0]?.id;
 
-    const taskQuery = `
+  if (!courseId) {
+    throw new Error("Curso no encontrado con ese UUID.");
+  }
+
+  const taskQuery = `
     INSERT INTO tasks (uuid, user_id, course_id, title, description, due_date, time_start, time_end, category, is_urgent, is_important, is_completed, created_at, updated_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,0,NOW(),NOW())`
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW(), NOW())`;
 
-    const subTaskQuery = `
+  const [taskResult]: any = await db.query(taskQuery, [
+    uuid,
+    userId,
+    courseId,
+    taskData.title,
+    taskData.description,
+    taskData.due_date,
+    taskData.time_start,
+    taskData.time_end,
+    taskData.category,
+    is_urgent,
+    is_important,
+  ]);
+
+  const taskId = taskResult.insertId;
+
+  const subTaskQuery = `
     INSERT INTO subtasks (uuid, task_id, title, is_completed, created_at, updated_at)
-    VALUES (?,?,?,0,NOW(),NOW())`
+    VALUES (?, ?, ?, 0, NOW(), NOW())`;
 
-    const [taskResult] : any = await db.query( taskQuery, [taskData.uuid,
-        userId,
-        courseId,
-        taskData.title,
-        taskData.description,
-        taskData.due_date,
-        taskData.time_start,
-        taskData.time_end,
-        taskData.category,
-        is_important,
-        is_urgent
-    ])
+  for (const subtask of subTasksData) {
+    const subtaskUuid = subtask.uuid || uuidv4();
+    await db.query(subTaskQuery, [subtaskUuid, taskId, subtask.title]);
+  }
 
-    const taskId = taskResult.insertId;
+  const [studentsResult]: any = await db.query(`
+    SELECT student_id FROM enrollments WHERE course_id = ?`, [courseId]);
 
-    if (Array.isArray(subTasksData) && subTasksData.length > 0) {
-        for (const subtask of subTasksData) {
-            await db.query(subTaskQuery,
-                [subtask.uuid, taskId, subtask.title]
-            );
-        }
-    }
+  return {
+    ...{
+      id: taskId,
+      user_id: userId,
+      course_id: courseId,
+      category: taskData.category,
+      title: taskData.title,
+      description: taskData.description,
+      due_date: taskData.due_date,
+      time_start: taskData.time_start,
+      time_end: taskData.time_end,
+      is_urgent,
+      is_important,
+      is_completed: false,
+      created_at: new Date(),
+      updated_at: new Date(),
+      subtasks: subTasksData.map(st => ({
+        id: st.task_id,
+        uuid: st.uuid || uuidv4(),
+        task_id: taskId,
+        title: st.title,
+        is_completed: 0,
+        created_at: new Date(),
+        updated_at: new Date()
+      }))
+    },
+    course: courseId,
+    students: studentsResult
+  };
+};
 
-    const [studentsResult] : any = await db.query(`SELECT student_id
-    FROM enrollments
-    WHERE course_id = ?;
-    `, courseId)
+export const selectTasksGroupedByCourses = async (
+  userId: number,
+  filter: "today" | "week" | "month"
+) => {
+  const filter_clause = {
+    today: "AND due_date <= CURDATE()",
+    week: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 7 DAY) OR due_date IS NULL)",
+    month: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)"
+  };
 
-    const response = {
-        ...{
-            id: taskId,
-            user_id: userId,
-            course_id: taskData.course_id,
-            category: taskData.category,
-            title: taskData.title,
-            description: taskData.description,
-            due_date: taskData.due_date,
-            time_start: taskData.time_start,
-            time_end: taskData.time_end,
-            is_urgent: is_urgent,
-            is_important: is_important,
-            is_completed: false,
-            created_at: new Date(),
-            updated_at: new Date(),
-            subtasks: subTasksData.map((st, idx) => ({
-                id: st.task_id,
-                uuid: st.uuid || null,
-                task_id: taskId,
-                title: st.title,
-                is_completed: 0,
-                created_at: new Date(),
-                updated_at: new Date()
-            }))
-        },
-        course: taskData.course_id || null,
-        students: studentsResult
-    };
+  const query = `
+  SELECT c.uuid as course_uuid, c.title as course_name, t.*
+  FROM tasks t
+  LEFT JOIN courses c ON t.course_id = c.id
+  WHERE t.user_id = ? ${filter_clause[filter]}
+  ORDER BY c.title ASC, t.due_date ASC;
+  `;
 
-    return response;
-}
+  const [result] = await db.query(query, [userId]);
+  return result;
+};
+
+export const updateTaskByUuid = async (
+  uuid: string,
+  data: Partial<ITaskInsertData>
+) => {
+  const fields = Object.keys(data).map(key => `${key} = ?`).join(", ");
+  const values = Object.values(data);
+
+  const query = `UPDATE tasks SET ${fields}, updated_at = NOW() WHERE uuid = ?`;
+  await db.query(query, [...values, uuid]);
+
+  const [updated] = await db.query(`SELECT * FROM tasks WHERE uuid = ?`, [uuid]);
+  return updated;
+};
+
+export const patchPriority = async (
+  uuid: string,
+  is_urgent: boolean,
+  is_important: boolean
+) => {
+  const query = `
+    UPDATE tasks
+    SET is_urgent = ?, is_important = ?, updated_at = NOW()
+    WHERE uuid = ?`;
+
+  await db.query(query, [is_urgent ? 1 : 0, is_important ? 1 : 0, uuid]);
+  const [updated] = await db.query(`SELECT * FROM tasks WHERE uuid = ?`, [uuid]);
+  return updated;
+};
+
+export const deleteTask = async (uuid: string) => {
+  await db.query(`DELETE FROM tasks WHERE uuid = ?`, [uuid]);
+};
 
 export default {
-    selectAllTasksByCourseUuid,
-    selectAllTasks,
-    createTask,
-    createTaskByTeacher
+  selectAllTasksByCourseUuid,
+  selectAllTasks,
+  createTask,
+  createTaskByTeacher,
+  selectTasksGroupedByCourses,
+  updateTaskByUuid,
+  patchPriority,
+  deleteTask
 };
-    
-
