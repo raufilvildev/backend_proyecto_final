@@ -70,8 +70,12 @@ export const createTask = async (
   res: Response
 ) => {
   try {
+    console.log("[createTask] Starting task creation with body:", req.body);
+    
     const user = req.user as IUser
     const userId = user.id
+    console.log("[createTask] User ID:", userId);
+    
     const { uuid, course_id, title, description, due_date, time_start, time_end, category, is_urgent, is_important, subtasks} = req.body
 
     if (!userId) {
@@ -97,17 +101,22 @@ export const createTask = async (
       is_important,
       subtasks
     }
+    console.log("[createTask] Task data to insert:", taskInsertData);
 
     const subTaskInsertData: ISubtasksInsertData[] = Array.isArray(subtasks) ? subtasks : [];
+    console.log("[createTask] Subtasks to insert:", subTaskInsertData);
 
     const newTask = await Tasks.createTask(userId, taskInsertData, subTaskInsertData);
+    console.log("[createTask] Task created successfully:", newTask);
 
     res.status(200).json(newTask);
 
   } catch (error) {
-      res.status(500).json({
+    console.error("[createTask] Error creating task:", error);
+    res.status(500).json({
       status: "error",
-      message: error,
+      message: GENERAL_SERVER_ERROR_MESSAGE,
+      details: error instanceof Error ? error.message : String(error)
     });
   }
 }
