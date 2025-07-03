@@ -88,12 +88,17 @@ export const createTask = async (
       return;
     }
 
+    let formattedDueDate = due_date;
+    if (due_date && typeof due_date === "string") {
+      formattedDueDate = new Date(due_date).toISOString().split("T")[0]
+    }
+
     const taskInsertData : ITaskInsertData = {
       uuid,
       course_id,
       title,
       description,
-      due_date,
+      due_date: formattedDueDate,
       time_start,
       time_end,
       category,
