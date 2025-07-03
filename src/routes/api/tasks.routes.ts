@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getAllTasksByCourseUUID, getAllTasks, createTask, createTaskByTeacher } from "../../features/tasks/tasks.controller";
 import { checkToken } from "../../features/authorization/authorization.middleware";
+import { generateUuid } from "../../shared/middlewares/uuid_generate.middleware";
 
 const router = Router();
 
@@ -20,7 +21,7 @@ const router = Router();
 router.get("", checkToken, getAllTasks)
 router.get("/:courseuuid", checkToken, getAllTasksByCourseUUID)
 
-router.post("", checkToken, createTask);
-router.post("/:courseuuid", checkToken, createTaskByTeacher);
+router.post("", checkToken, generateUuid, createTask);
+router.post("/:courseuuid", checkToken, generateUuid, createTaskByTeacher);
 
 export default router;
