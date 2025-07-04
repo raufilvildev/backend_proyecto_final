@@ -363,8 +363,8 @@ export const updateTask = async (
     SET title = ?, description = ?, due_date = ?, time_start = ?, time_end = ?, category = ?, is_urgent = ?, is_important = ?, updated_at = NOW()
     WHERE uuid = ?`;
 
-  const is_important = updatedData.is_important ? 1 : 0;
-  const is_urgent = updatedData.is_urgent ? 1 : 0;
+  const is_important = updatedData.is_important === true ? 1 : 0;
+  const is_urgent = updatedData.is_urgent === true ? 1 : 0;
 
   await db.query(updateQuery, [
     updatedData.title,
@@ -420,16 +420,10 @@ export const deleteTask = async (task_uuid: string) => {
   await db.query(`DELETE FROM subtasks WHERE task_id = ?`, [task.id]);
   await db.query(`DELETE FROM tasks WHERE id = ?`, [task.id]);
 
-  // Retorna datos relevantes de la tarea eliminada
-  return {
-    success: true,
-    deletedTask: {
-      title: task.title,
-      uuid: task.uuid,
-      id: task.id,
-    },
-  };
+  // Retorna directamente la tarea eliminada
+  return task;
 };
+
 export default {
     selectAllTasksByCourseUuid,
     selectAllTasks,

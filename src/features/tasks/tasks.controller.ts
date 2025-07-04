@@ -253,16 +253,16 @@ export const deleteTask = async (req: Request, res: Response) => {
   try {
     const { task_uuid } = req.params;
 
-    const result = await Tasks.deleteTask(task_uuid);
+    const deletedTask = await Tasks.deleteTask(task_uuid);
 
-    if (!result) {
+    if (!deletedTask) {
       res.status(404).json({ error: "Tarea no encontrada." });
       return;
     }
 
     res.status(200).json({
-      message: `Tarea '${result.deletedTask.title}' eliminada exitosamente.`,
-      deletedTask: result.deletedTask,
+      message: `Tarea '${deletedTask.title}' eliminada exitosamente.`,
+      deletedTask,
     });
   } catch (error) {
     res.status(500).json({
