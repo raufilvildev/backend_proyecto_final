@@ -4,11 +4,12 @@ import {
   getAllTasks,
   createTask,
   createTaskByTeacher,
-  getAllTasksGroupedByCourses,
   updateTask,
-  patchTaskPriority,
-  deleteTask
-} from "../../features/tasks/tasks.controller";import { checkToken } from "../../features/authorization/authorization.middleware";
+  patchTaskUrgencyImportance,
+  deleteTask,
+} from "../../features/tasks/tasks.controller";
+import { checkToken } from "../../features/authorization/authorization.middleware";
+import { generateUuid } from "../../shared/middlewares/uuid_generate.middleware";
 
 const router = Router();
 
@@ -25,27 +26,14 @@ const router = Router();
 
 // DELETE api/tasks/:task_uuid
 
+router.get("", checkToken, getAllTasks);
+router.get("/:courseuuid", checkToken, getAllTasksByCourseUUID);
 
-// ✅ Rutas más específicas van primero
-router.get("/courses", checkToken, getAllTasksGroupedByCourses);
-router.get("/course/:courseuuid", checkToken, getAllTasksByCourseUUID);
+router.post("", checkToken, generateUuid, createTask);
+router.post("/:courseuuid", checkToken, generateUuid, createTaskByTeacher);
 
-// ✅ Rutas generales van después
-router.get("/", checkToken, getAllTasks);
-
-// POST tarea para usuario
-router.post("/", checkToken, createTask);
-
-// POST tarea para curso (solo profesor)
-router.post("/:courseuuid", checkToken, createTaskByTeacher);
-
-// PUT actualizar tarea completa
 router.put("/:task_uuid", checkToken, updateTask);
-
-// PATCH urgencia/importancia
-router.patch("/:task_uuid", checkToken, patchTaskPriority);
-
-// DELETE tarea
+router.patch("/:task_uuid", checkToken, patchTaskUrgencyImportance);
 router.delete("/:task_uuid", checkToken, deleteTask);
 
 export default router;
