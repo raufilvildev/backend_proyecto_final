@@ -212,10 +212,9 @@ export const updateTask = async (req: Request, res: Response) => {
 
     res.status(200).json(updatedTask);
   } catch (error) {
-    res.status(500).json({
+      res.status(500).json({
       status: "error",
-      message: "No se pudo actualizar la tarea",
-      details: error instanceof Error ? error.message : String(error),
+      message: error,
     });
   }
 };
@@ -241,10 +240,9 @@ export const patchTaskUrgencyImportance = async (
 
     res.status(200).json(updatedTask);
   } catch (error) {
-    res.status(500).json({
+      res.status(500).json({
       status: "error",
-      message: "No se pudo actualizar urgencia/importancia",
-      details: error instanceof Error ? error.message : String(error),
+      message: error,
     });
   }
 };
@@ -265,10 +263,9 @@ export const deleteTask = async (req: Request, res: Response) => {
       deletedTask,
     });
   } catch (error) {
-    res.status(500).json({
+      res.status(500).json({
       status: "error",
-      message: "No se pudo eliminar la tarea",
-      details: error instanceof Error ? error.message : String(error),
+      message: error,
     });
   }
 };
