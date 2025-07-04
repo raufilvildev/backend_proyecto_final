@@ -260,7 +260,10 @@ export const deleteTask = async (req: Request, res: Response) => {
       return;
     }
 
-    res.status(200).json({ message: "Tarea eliminada exitosamente." });
+    res.status(200).json({
+      message: `Tarea '${result.deletedTask.title}' eliminada exitosamente.`,
+      deletedTask: result.deletedTask,
+    });
   } catch (error) {
     res.status(500).json({
       status: "error",

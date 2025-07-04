@@ -413,16 +413,23 @@ export const patchUrgencyImportance = async (
 };
 
 export const deleteTask = async (task_uuid: string) => {
-  const [taskRows]: any = await db.query(`SELECT id FROM tasks WHERE uuid = ?`, [task_uuid]);
+  const [taskRows]: any = await db.query(`SELECT * FROM tasks WHERE uuid = ?`, [task_uuid]);
   const task = taskRows[0];
   if (!task) return null;
 
   await db.query(`DELETE FROM subtasks WHERE task_id = ?`, [task.id]);
   await db.query(`DELETE FROM tasks WHERE id = ?`, [task.id]);
 
-  return { success: true };
+  // Retorna datos relevantes de la tarea eliminada
+  return {
+    success: true,
+    deletedTask: {
+      title: task.title,
+      uuid: task.uuid,
+      id: task.id,
+    },
+  };
 };
-
 export default {
     selectAllTasksByCourseUuid,
     selectAllTasks,
