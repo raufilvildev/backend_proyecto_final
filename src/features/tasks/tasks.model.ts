@@ -17,6 +17,7 @@ interface Task {
   is_completed: boolean;
   created_at: string;
   updated_at: string;
+  uuid: string;
   subtasks: SubTask[];
 }
 
@@ -56,7 +57,8 @@ export const selectAllTasks = async (
     t.is_important,
     t.is_completed,
     t.created_at,
-    t.updated_at
+    t.updated_at,
+    t.uuid
     FROM tasks t
     LEFT JOIN subtasks st on t.id = st.task_id 
     WHERE t.user_id = ? ${filter_sql}
@@ -96,6 +98,7 @@ export const selectAllTasks = async (
             is_completed: task.is_completed,
             created_at: task.created_at,
             updated_at: task.updated_at,
+            uuid: task.uuid,
             subtasks: []
         })
     }
@@ -136,7 +139,8 @@ export const selectAllTasksByCourseUuid = async  (
     t.is_important,
     t.is_completed,
     t.created_at,
-    t.updated_at
+    t.updated_at,
+    t.uuid
     FROM tasks t
     LEFT JOIN subtasks st on t.id = st.task_id 
     LEFT JOIN courses c ON t.course_id = c.id
@@ -179,6 +183,7 @@ export const selectAllTasksByCourseUuid = async  (
             is_completed: task.is_completed,
             created_at: task.created_at,
             updated_at: task.updated_at,
+            uuid: task.uuid,
             subtasks: []
         })
     }
@@ -258,6 +263,7 @@ export const createTask = async (
             is_completed: task.is_completed,
             created_at: task.created_at,
             updated_at: task.updated_at,
+            uuid: task.uuid,
             subtasks: []
         });
     }
@@ -433,5 +439,5 @@ export default {
     patchUrgencyImportance,
     deleteTask
 };
-    
+
 
