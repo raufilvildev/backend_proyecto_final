@@ -292,7 +292,7 @@ export const createTaskByTeacher = async (
   const is_urgent = taskData.is_urgent === true ? 1 : 0;
 
   const [courseResult]: any = await db.query(
-    `SELECT id FROM taskly.courses WHERE courses.uuid = ?`,
+    `SELECT id FROM courses WHERE courses.uuid = ?`,
     course_uuid
   );
   const courseId = courseResult[0].id;
