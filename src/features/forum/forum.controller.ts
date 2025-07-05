@@ -134,7 +134,7 @@ export const editThread = async (
       return;
     }
 
-    await Forum.editThread(uuid, title, content)
+    await Forum.editThread(uuid, title, content);
 
     const newResponseDetails = await Forum.selectThreadByUuid(uuid);
 

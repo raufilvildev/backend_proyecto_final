@@ -4,7 +4,6 @@ import type { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import User from "../users/user.model";
 import { INVALID_TOKEN_MESSAGE } from "../../shared/utils/constants.util";
-import { decrypt } from "../../shared/utils/crypto.util";
 import dayjs from "dayjs";
 
 dotenv.config();

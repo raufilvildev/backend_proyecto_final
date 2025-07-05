@@ -38,7 +38,7 @@ export interface ITaskInsertData {
   category?: "custom" | "course_related";
   is_urgent: boolean;
   is_important: boolean;
-  subtasks: []
+  subtasks: [];
 }
 
 export interface ISubtasksInsertData {

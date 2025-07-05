@@ -12,7 +12,7 @@ export interface IPostResponsePayload {
   content: string;
   user?: IUser;
   uuid: string;
-  title: string
+  title: string;
 }
 
 interface User {
@@ -218,16 +218,16 @@ export const insertResponse = async (
 export const editThread = async (
   uuid: string,
   title: string,
-  content: string,
+  content: string
 ) => {
   const [result] = await db.query(
     `UPDATE forum_threads
     SET content = ?, title = ?, updated_at = NOW()
     WHERE uuid = ?`,
     [content, title, uuid]
-  )
-  return result
-}
+  );
+  return result;
+};
 
 export const editResponse = async (userId: number, content: string) => {
   const [result] = await db.query(
