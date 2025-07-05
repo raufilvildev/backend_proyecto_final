@@ -37,6 +37,79 @@ interface SubTask {
 
 export const selectAllTasks = async (
   userId: number,
+) => {
+
+  const selectAllTasksQuery = `SELECT t.id,
+    t.user_id,
+    t.course_id,
+    t.category,
+    t.title,
+    t.description,
+    t.due_date,
+    t.time_start,
+    t.time_end,
+    t.is_urgent,
+    t.is_important,
+    t.is_completed,
+    t.created_at,
+    t.updated_at,
+    t.uuid
+    FROM tasks t
+    LEFT JOIN subtasks st on t.id = st.task_id 
+    WHERE t.user_id = ?
+    ORDER BY due_date ASC`;
+
+  const selectAllSubTasksQuery = `
+    SELECT st.uuid,
+    st.task_id,
+    st.title,
+    st.is_completed,
+    st.created_at,
+    st.updated_at
+    FROM subtasks st
+    LEFT JOIN tasks t on t.id = st.task_id
+    WHERE t.user_id = ?`;
+
+  const [[tasksResult], [subtasksResult]] = await Promise.all([
+    db.query(selectAllTasksQuery, [userId]),
+    db.query(selectAllSubTasksQuery, [userId]),
+  ]);
+
+  const taskMap = new Map<number, Task>();
+
+  for (const task of tasksResult as Task[]) {
+    taskMap.set(task.id, {
+      id: task.id,
+      user_id: task.user_id,
+      course_id: task.course_id,
+      category: task.category,
+      title: task.title,
+      description: task.description,
+      due_date: task.due_date,
+      time_start: task.time_start,
+      time_end: task.time_end,
+      is_urgent: task.is_urgent,
+      is_important: task.is_important,
+      is_completed: task.is_completed,
+      created_at: task.created_at,
+      updated_at: task.updated_at,
+      uuid: task.uuid,
+      subtasks: [],
+    });
+  }
+
+  for (const subtask of subtasksResult as SubTask[]) {
+    const task = taskMap.get(subtask.task_id);
+    if (task) {
+      task.subtasks.push(subtask);
+    }
+  }
+
+  return Array.from(taskMap.values());
+};
+
+export const selectAllTasksFiltered = async (
+  userId: number,
   filter: "today" | "week" | "month"
 ) => {
   let filter_clause = {
@@ -514,8 +587,9 @@ export const deleteTask = async (task_uuid: string) => {
 };
 
 export default {
-  selectAllTasksByCourseUuid,
   selectAllTasks,
+  selectAllTasksFiltered,
+  selectAllTasksByCourseUuid,
   createTask,
   createTaskByTeacher,
   updateTask,

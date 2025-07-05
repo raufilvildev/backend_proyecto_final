@@ -7,6 +7,21 @@ import {
   ITaskInsertData,
 } from "../../interfaces/itask.interface";
 
+export const getAllTasks = async (req: Request, res: Response) => {
+  try {
+    const user = req.user as IUser;
+    const userId = user.id;
+
+    const tasks = await Tasks.selectAllTasks(userId);
+    res.status(200).json(tasks);
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error,
+    });
+  }
+};
+
 export const getAllTasksByCourseUUID = async (
   req: Request,
   res: Response
@@ -23,7 +38,7 @@ export const getAllTasksByCourseUUID = async (
 
     if (!courseuuid) {
       // Utilizar método get all (todas las del usuario, no del curso)
-      const tasks = await Tasks.selectAllTasks(user, filter);
+      const tasks = await Tasks.selectAllTasksFiltered(user, filter);
       res.status(200).json(tasks);
       return;
     }
@@ -39,18 +54,22 @@ export const getAllTasksByCourseUUID = async (
   }
 };
 
-export const getAllTasks = async (req: Request, res: Response) => {
+export const getAllTasksFiltered = async (req: Request, res: Response) => {
   try {
     const user = req.user as IUser;
     const userId = user.id;
     let { filter } = req.query;
+    if (Array.isArray(filter)) filter = filter[0];
 
     if (!(filter === "today" || filter === "week" || filter === "month")) {
       res.status(400).json({ error: "Filter debe ser today, week or month" });
       return;
     }
 
-    const tasks = await Tasks.selectAllTasks(userId, filter);
+    const tasks = await Tasks.selectAllTasksFiltered(
+      userId,
+      filter as "today" | "week" | "month"
+    );
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({

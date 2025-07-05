@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {
-  getAllTasksByCourseUUID,
   getAllTasks,
+  getAllTasksByCourseUUID,
+  getAllTasksFiltered,
   createTask,
   createTaskByTeacher,
   updateTask,
@@ -14,7 +15,12 @@ import { generateUuidForSubtasks } from "../../features/tasks/tasks.middleware";
 
 const router = Router();
 
-router.get("", getAllTasks);
+router.get("", (req, res, next) => {
+  if (req.query.filter) {
+    return getAllTasksFiltered(req, res);
+  }
+  return getAllTasks(req, res);
+});
 router.get("/:courseuuid", getAllTasksByCourseUUID);
 
 router.post("", generateUuid, generateUuidForSubtasks, createTask);
