@@ -3,6 +3,8 @@ import {
   ITaskInsertData,
   ISubtasksInsertData,
 } from "interfaces/itask.interface";
+import Courses from "../../features/courses/course.model";
+import { IUser } from "../../interfaces/iuser.interface";
 
 interface Task {
   id: number;
@@ -282,18 +284,18 @@ export const createTask = async (
 
 export const createTaskByTeacher = async (
   course_uuid: string,
-  userId: number,
+  user: IUser,
   taskData: ITaskInsertData,
   subTasksData: ISubtasksInsertData[]
 ) => {
   const is_important = taskData.is_important === true ? 1 : 0;
   const is_urgent = taskData.is_urgent === true ? 1 : 0;
 
-  const [courseRows]: any = await db.query(
-    `SELECT id FROM courses WHERE uuid = ?`,
-    course_uuid
-  );
-  const courseId = courseRows[0]?.id;
+  const course = await Courses.selectByUuid(course_uuid, user);
+
+  const courseId = course?.id;
+
+  const userId = user.id;
 
   const taskQuery = `
     INSERT INTO tasks (uuid, user_id, course_id, title, description, due_date, time_start, time_end, category, is_urgent, is_important, is_completed, created_at, updated_at)
@@ -337,7 +339,7 @@ export const createTaskByTeacher = async (
     ...{
       id: taskId,
       user_id: userId,
-      course_id: taskData.course_id,
+      course_id: courseId,
       category: taskData.category,
       title: taskData.title,
       description: taskData.description,
@@ -359,7 +361,7 @@ export const createTaskByTeacher = async (
         updated_at: new Date(),
       })),
     },
-    course: taskData.course_id || null,
+    course: courseId || null,
     students: studentsResult,
   };
 
@@ -376,10 +378,10 @@ export const updateTask = async (
     SET title = ?, description = ?, due_date = ?, time_start = ?, time_end = ?, category = ?, is_urgent = ?, is_important = ?, is_completed = ?, updated_at = NOW()
     WHERE uuid = ?`;
 
-    const updateSubtasksQuery = `
+  const updateSubtasksQuery = `
     UPDATE tasks
     SET title = ?, is_completed = ?
-    WHERE uuid = ?`
+    WHERE uuid = ?`;
 
   const is_important = updatedData.is_important === true ? 1 : 0;
   const is_urgent = updatedData.is_urgent === true ? 1 : 0;
@@ -400,7 +402,11 @@ export const updateTask = async (
 
   if (Array.isArray(subtasks) && subtasks.length > 0) {
     for (const subtask of subtasks) {
-      await db.query(updateSubtasksQuery, [subtask.title, subtask.is_completed, subtask.uuid]);
+      await db.query(updateSubtasksQuery, [
+        subtask.title,
+        subtask.is_completed,
+        subtask.uuid,
+      ]);
     }
   }
 
