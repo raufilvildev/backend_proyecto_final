@@ -65,7 +65,6 @@ export const createTask = async (req: Request, res: Response) => {
   try {
     const user = req.user as IUser;
     const userId = user.id;
-    console.log("[createTask] User ID:", userId);
 
     const {
       uuid,
@@ -108,19 +107,16 @@ export const createTask = async (req: Request, res: Response) => {
 
       subtasks,
     };
-    console.log("[createTask] Task data to insert:", taskInsertData);
 
     const subTaskInsertData: ISubtasksInsertData[] = Array.isArray(subtasks)
       ? subtasks
       : [];
-    console.log("[createTask] Subtasks to insert:", subTaskInsertData);
 
     const newTask = await Tasks.createTask(
       userId,
       taskInsertData,
       subTaskInsertData
     );
-    console.log("[createTask] Task created successfully:", newTask);
 
     res.status(200).json(newTask);
   } catch (error) {
@@ -145,7 +141,7 @@ export const createTaskByTeacher = async (req: Request, res: Response) => {
       description,
       due_date,
       time_start,
-      time_estimated,
+      time_end,
       is_urgent,
       is_important,
       subtasks,
@@ -154,8 +150,6 @@ export const createTaskByTeacher = async (req: Request, res: Response) => {
     const course = await Courses.selectByUuid(courseuuid, user);
 
     const course_id = course?.id;
-
-    const time_end = time_start + time_estimated;
 
     if (!courseuuid) {
       res.status(400).json({ error: "El course_uuid es obligatorio" });
@@ -225,6 +219,7 @@ export const updateTask = async (req: Request, res: Response) => {
       is_urgent,
       is_important,
       is_completed,
+      subtasks
     } = req.body;
 
     const updatedTask = await Tasks.updateTask(task_uuid, {
@@ -238,7 +233,7 @@ export const updateTask = async (req: Request, res: Response) => {
       is_urgent,
       is_important,
       is_completed,
-    });
+    }, subtasks);
 
     res.status(200).json(updatedTask);
   } catch (error) {

@@ -10,17 +10,19 @@ import {
 } from "../../features/tasks/tasks.controller";
 import { generateUuid } from "../../shared/middlewares/uuid_generate.middleware";
 import { teacherRoleCheck } from "../../shared/middlewares/teacher_role_check.middleware";
+import { generateUuidForSubtasks } from "../../features/tasks/tasks.middleware";
 
 const router = Router();
 
 router.get("", getAllTasks);
 router.get("/:courseuuid", getAllTasksByCourseUUID);
 
-router.post("", generateUuid, createTask);
+router.post("", generateUuid, generateUuidForSubtasks, createTask);
 router.post(
   "/:courseuuid",
   teacherRoleCheck,
   generateUuid,
+  generateUuidForSubtasks,
   createTaskByTeacher
 );
 
