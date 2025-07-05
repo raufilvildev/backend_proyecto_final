@@ -382,7 +382,7 @@ export const updateTask = async (
     WHERE uuid = ?`;
 
   const updateSubtasksQuery = `
-    UPDATE tasks
+    UPDATE subtasks
     SET title = ?, is_completed = ?
     WHERE uuid = ?`;
 
@@ -405,9 +405,10 @@ export const updateTask = async (
 
   if (Array.isArray(subtasks) && subtasks.length > 0) {
     for (const subtask of subtasks) {
+      let subtask_completed = subtask.is_completed === true ? 1 : 0;
       await db.query(updateSubtasksQuery, [
         subtask.title,
-        subtask.is_completed,
+        subtask_completed,
         subtask.uuid,
       ]);
     }
