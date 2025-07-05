@@ -1,4 +1,3 @@
-import Courses from "features/courses/course.model";
 import db from "../../config/db.config";
 import { ITaskInsertData, ISubtasksInsertData } from "interfaces/itask.interface";
 

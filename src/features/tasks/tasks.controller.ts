@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { GENERAL_SERVER_ERROR_MESSAGE } from "../../shared/utils/constants.util";
 import Tasks  from "./tasks.model";
-import { IUser } from 'interfaces/iuser.interface';
-import { ISubtasksInsertData, ITaskInsertData } from 'interfaces/itask.interface';
-import { error } from 'console';
+import { IUser } from '../../interfaces/iuser.interface';
+import { ISubtasksInsertData, ITaskInsertData } from '../../interfaces/itask.interface';
+import Courses from '../../features/courses/course.model';
 
 export const getAllTasksByCourseUUID = async (
   req: Request,
@@ -70,13 +70,14 @@ export const createTask = async (
   res: Response
 ) => {
   try {
-    console.log("[createTask] Starting task creation with body:", req.body);
     
     const user = req.user as IUser
     const userId = user.id
     console.log("[createTask] User ID:", userId);
     
-    const { uuid, course_id, title, description, due_date, time_start, time_end, category, is_urgent, is_important, subtasks} = req.body
+    const { uuid, title, description, due_date, time_start, time_estimated, is_urgent, is_important, subtasks} = req.body
+
+    const time_end = time_start + time_estimated
 
     if (!userId) {
       res.status(400).json({ error: "El User Id es obligatorio"});
@@ -95,13 +96,13 @@ export const createTask = async (
 
     const taskInsertData : ITaskInsertData = {
       uuid,
-      course_id,
+      course_id: null,
       title,
       description,
       due_date: formattedDueDate,
       time_start,
       time_end,
-      category,
+      category: "custom",
       is_urgent,
       is_important,
       subtasks
@@ -136,7 +137,14 @@ export const createTaskByTeacher = async (
     const user = req.user as IUser
     const role = user.role
     const userId = user.id
-    const { uuid, course_id, title, description, due_date, time_start, time_end, category, is_urgent, is_important, subtasks} = req.body
+    const { uuid, title, description, due_date, time_start, time_estimated, is_urgent, is_important, subtasks} = req.body
+
+    const course = await Courses.selectByUuid(courseuuid, user)
+
+    const course_id = course?.id
+
+    const time_end = time_start + time_estimated
+
     if (!courseuuid) {
       res.status(400).json({ error: "El course_uuid es obligatorio"})
       return
@@ -161,7 +169,7 @@ export const createTaskByTeacher = async (
         due_date,
         time_start,
         time_end,
-        category,
+        category: "course_related",
         is_urgent,
         is_important,
         subtasks

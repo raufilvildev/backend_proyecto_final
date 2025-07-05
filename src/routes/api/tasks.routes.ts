@@ -26,14 +26,14 @@ const router = Router();
 
 // DELETE api/tasks/:task_uuid
 
-router.get("", checkToken, getAllTasks);
-router.get("/:courseuuid", checkToken, getAllTasksByCourseUUID);
+router.get("", getAllTasks);
+router.get("/:courseuuid", getAllTasksByCourseUUID);
 
-router.post("", checkToken, generateUuid, createTask);
-router.post("/:courseuuid", checkToken, generateUuid, createTaskByTeacher);
+router.post("", generateUuid, createTask);
+router.post("/:courseuuid", generateUuid, createTaskByTeacher);
 
-router.put("/:task_uuid", checkToken, updateTask);
-router.patch("/:task_uuid", checkToken, patchTaskUrgencyImportance);
-router.delete("/:task_uuid", checkToken, deleteTask);
+router.put("/:task_uuid", updateTask);
+router.patch("/:task_uuid", patchTaskUrgencyImportance);
+router.delete("/:task_uuid", deleteTask);
 
 export default router;
