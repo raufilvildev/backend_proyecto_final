@@ -16,7 +16,8 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX3V1aWQiOiJkMWNlZWY5
   "is_important": true,
   "is_completed": true,
   "subtasks": [{"uuid": "subtask-uuid-1", "title": "Subtarea 1", "is_completed": true},
-               {"uuid": "subtask-uuid-2", "title": "Subtarea 2", "is_completed": false}]
+               {"uuid": "subtask-uuid-2", "title": "Subtarea 2", "is_completed": false},
+               {"uuid": undefined, "title": "Subtarea 2", "is_completed": false}]
 }
 
 ### Crear una tarea
