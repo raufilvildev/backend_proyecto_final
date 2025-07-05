@@ -73,13 +73,11 @@ export const createTask = async (req: Request, res: Response) => {
       description,
       due_date,
       time_start,
-      time_estimated,
+      time_end,
       is_urgent,
       is_important,
       subtasks,
     } = req.body;
-
-    const time_end = time_start + time_estimated;
 
     if (!userId) {
       res.status(400).json({ error: "El User Id es obligatorio" });
