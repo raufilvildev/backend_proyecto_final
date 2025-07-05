@@ -6,7 +6,6 @@ import {
   ISubtasksInsertData,
   ITaskInsertData,
 } from "../../interfaces/itask.interface";
-import Courses from "../../features/courses/course.model";
 
 export const getAllTasksByCourseUUID = async (
   req: Request,
@@ -147,10 +146,6 @@ export const createTaskByTeacher = async (req: Request, res: Response) => {
       subtasks,
     } = req.body;
 
-    const course = await Courses.selectByUuid(courseuuid, user);
-
-    const course_id = course?.id;
-
     if (!courseuuid) {
       res.status(400).json({ error: "El course_uuid es obligatorio" });
       return;
@@ -169,7 +164,6 @@ export const createTaskByTeacher = async (req: Request, res: Response) => {
     if (role === "teacher") {
       const taskInsertData: ITaskInsertData = {
         uuid,
-        course_id,
         title,
         description,
         due_date,
@@ -187,7 +181,7 @@ export const createTaskByTeacher = async (req: Request, res: Response) => {
 
       const newTask = await Tasks.createTaskByTeacher(
         courseuuid,
-        userId,
+        user,
         taskInsertData,
         subTaskInsertData
       );
@@ -219,21 +213,25 @@ export const updateTask = async (req: Request, res: Response) => {
       is_urgent,
       is_important,
       is_completed,
-      subtasks
+      subtasks,
     } = req.body;
 
-    const updatedTask = await Tasks.updateTask(task_uuid, {
-      uuid: task_uuid,
-      title,
-      description,
-      due_date,
-      time_start,
-      time_end,
-      category,
-      is_urgent,
-      is_important,
-      is_completed,
-    }, subtasks);
+    const updatedTask = await Tasks.updateTask(
+      task_uuid,
+      {
+        uuid: task_uuid,
+        title,
+        description,
+        due_date,
+        time_start,
+        time_end,
+        category,
+        is_urgent,
+        is_important,
+        is_completed,
+      },
+      subtasks
+    );
 
     res.status(200).json(updatedTask);
   } catch (error) {
