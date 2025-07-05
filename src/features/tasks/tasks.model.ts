@@ -35,10 +35,7 @@ interface SubTask {
   updated_at: Date;
 }
 
-export const selectAllTasks = async (
-  userId: number,
-) => {
-
+export const selectAllTasks = async (userId: number) => {
   const selectAllTasksQuery = `SELECT t.id,
     t.user_id,
     t.course_id,

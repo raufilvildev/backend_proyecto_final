@@ -15,7 +15,7 @@ import { generateUuidForSubtasks } from "../../features/tasks/tasks.middleware";
 
 const router = Router();
 
-router.get("", (req, res, next) => {
+router.get("", (req, res) => {
   if (req.query.filter) {
     return getAllTasksFiltered(req, res);
   }
