@@ -107,6 +107,7 @@ export const createTask = async (req: Request, res: Response) => {
       category: "custom",
       is_urgent,
       is_important,
+
       subtasks,
     };
     console.log("[createTask] Task data to insert:", taskInsertData);
@@ -225,6 +226,7 @@ export const updateTask = async (req: Request, res: Response) => {
       category,
       is_urgent,
       is_important,
+      is_completed,
     } = req.body;
 
     const updatedTask = await Tasks.updateTask(task_uuid, {
@@ -237,7 +239,7 @@ export const updateTask = async (req: Request, res: Response) => {
       category,
       is_urgent,
       is_important,
-      subtasks: [],
+      is_completed,
     });
 
     res.status(200).json(updatedTask);

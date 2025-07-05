@@ -372,11 +372,12 @@ export const updateTask = async (
 ) => {
   const updateQuery = `
     UPDATE tasks
-    SET title = ?, description = ?, due_date = ?, time_start = ?, time_end = ?, category = ?, is_urgent = ?, is_important = ?, updated_at = NOW()
+    SET title = ?, description = ?, due_date = ?, time_start = ?, time_end = ?, category = ?, is_urgent = ?, is_important = ?, is_completed = ? updated_at = NOW()
     WHERE uuid = ?`;
 
   const is_important = updatedData.is_important === true ? 1 : 0;
   const is_urgent = updatedData.is_urgent === true ? 1 : 0;
+  const is_completed = updatedData.is_completed === true ? 1 : 0;
 
   await db.query(updateQuery, [
     updatedData.title,
@@ -387,6 +388,7 @@ export const updateTask = async (
     updatedData.category,
     is_urgent,
     is_important,
+    is_completed,
     task_uuid,
   ]);
 
