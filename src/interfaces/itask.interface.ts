@@ -29,13 +29,13 @@ export interface ISubtask {
 
 export interface ITaskInsertData {
   uuid: string;
-  course_id?: number;
+  course_id?: number | null;
   title: string;
   description: string;
   due_date: string;
   time_start: string;
   time_end: string;
-  category: "custom" | "course_related";
+  category?: "custom" | "course_related";
   is_urgent: boolean;
   is_important: boolean;
   subtasks: []

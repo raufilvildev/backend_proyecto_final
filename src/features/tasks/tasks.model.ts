@@ -1,4 +1,3 @@
-import Courses from "features/courses/course.model";
 import db from "../../config/db.config";
 import { ITaskInsertData, ISubtasksInsertData } from "interfaces/itask.interface";
 
@@ -17,6 +16,7 @@ interface Task {
   is_completed: boolean;
   created_at: string;
   updated_at: string;
+  uuid: string;
   subtasks: SubTask[];
 }
 
@@ -56,7 +56,8 @@ export const selectAllTasks = async (
     t.is_important,
     t.is_completed,
     t.created_at,
-    t.updated_at
+    t.updated_at,
+    t.uuid
     FROM tasks t
     LEFT JOIN subtasks st on t.id = st.task_id 
     WHERE t.user_id = ? ${filter_sql}
@@ -96,6 +97,7 @@ export const selectAllTasks = async (
             is_completed: task.is_completed,
             created_at: task.created_at,
             updated_at: task.updated_at,
+            uuid: task.uuid,
             subtasks: []
         })
     }
@@ -136,7 +138,8 @@ export const selectAllTasksByCourseUuid = async  (
     t.is_important,
     t.is_completed,
     t.created_at,
-    t.updated_at
+    t.updated_at,
+    t.uuid
     FROM tasks t
     LEFT JOIN subtasks st on t.id = st.task_id 
     LEFT JOIN courses c ON t.course_id = c.id
@@ -179,6 +182,7 @@ export const selectAllTasksByCourseUuid = async  (
             is_completed: task.is_completed,
             created_at: task.created_at,
             updated_at: task.updated_at,
+            uuid: task.uuid,
             subtasks: []
         })
     }
@@ -258,6 +262,7 @@ export const createTask = async (
             is_completed: task.is_completed,
             created_at: task.created_at,
             updated_at: task.updated_at,
+            uuid: task.uuid,
             subtasks: []
         });
     }
@@ -354,11 +359,84 @@ export const createTaskByTeacher = async (
     return response;
 }
 
+export const updateTask = async (
+  task_uuid: string,
+  updatedData: ITaskInsertData
+) => {
+  const updateQuery = `
+    UPDATE tasks
+    SET title = ?, description = ?, due_date = ?, time_start = ?, time_end = ?, category = ?, is_urgent = ?, is_important = ?, updated_at = NOW()
+    WHERE uuid = ?`;
+
+  const is_important = updatedData.is_important === true ? 1 : 0;
+  const is_urgent = updatedData.is_urgent === true ? 1 : 0;
+
+  await db.query(updateQuery, [
+    updatedData.title,
+    updatedData.description,
+    updatedData.due_date,
+    updatedData.time_start,
+    updatedData.time_end,
+    updatedData.category,
+    is_urgent,
+    is_important,
+    task_uuid
+  ]);
+
+  const [taskRows]: any = await db.query(`SELECT * FROM tasks WHERE uuid = ?`, [task_uuid]);
+  const task = taskRows[0];
+
+  const [subtasks]: any = await db.query(`SELECT * FROM subtasks WHERE task_id = ?`, [task.id]);
+
+  return {
+    ...task,
+    subtasks
+  };
+};
+
+export const patchUrgencyImportance = async (
+  task_uuid: string,
+  is_urgent: boolean,
+  is_important: boolean
+) => {
+  const query = `
+    UPDATE tasks
+    SET is_urgent = ?, is_important = ?, updated_at = NOW()
+    WHERE uuid = ?`;
+
+  await db.query(query, [is_urgent ? 1 : 0, is_important ? 1 : 0, task_uuid]);
+
+  const [taskRows]: any = await db.query(`SELECT * FROM tasks WHERE uuid = ?`, [task_uuid]);
+  const task = taskRows[0];
+
+  const [subtasks]: any = await db.query(`SELECT * FROM subtasks WHERE task_id = ?`, [task.id]);
+
+  return {
+    ...task,
+    subtasks
+  };
+};
+
+export const deleteTask = async (task_uuid: string) => {
+  const [taskRows]: any = await db.query(`SELECT * FROM tasks WHERE uuid = ?`, [task_uuid]);
+  const task = taskRows[0];
+  if (!task) return null;
+
+  await db.query(`DELETE FROM subtasks WHERE task_id = ?`, [task.id]);
+  await db.query(`DELETE FROM tasks WHERE id = ?`, [task.id]);
+
+  // Retorna directamente la tarea eliminada
+  return task;
+};
+
 export default {
     selectAllTasksByCourseUuid,
     selectAllTasks,
     createTask,
-    createTaskByTeacher
+    createTaskByTeacher,
+    updateTask,
+    patchUrgencyImportance,
+    deleteTask
 };
-    
+
 

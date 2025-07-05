@@ -4,6 +4,9 @@ import {
   getAllTasks,
   createTask,
   createTaskByTeacher,
+  updateTask,
+  patchTaskUrgencyImportance,
+  deleteTask,
 } from "../../features/tasks/tasks.controller";
 import { checkToken } from "../../features/authorization/authorization.middleware";
 import { generateUuid } from "../../shared/middlewares/uuid_generate.middleware";
@@ -23,10 +26,14 @@ const router = Router();
 
 // DELETE api/tasks/:task_uuid
 
-router.get("", checkToken, getAllTasks);
-router.get("/:courseuuid", checkToken, getAllTasksByCourseUUID);
+router.get("", getAllTasks);
+router.get("/:courseuuid", getAllTasksByCourseUUID);
 
-router.post("", checkToken, generateUuid, createTask);
-router.post("/:courseuuid", checkToken, generateUuid, createTaskByTeacher);
+router.post("", generateUuid, createTask);
+router.post("/:courseuuid", generateUuid, createTaskByTeacher);
+
+router.put("/:task_uuid", updateTask);
+router.patch("/:task_uuid", patchTaskUrgencyImportance);
+router.delete("/:task_uuid", deleteTask);
 
 export default router;
