@@ -253,6 +253,7 @@ export const createTask = async (
 
   for (const task of createdTaskRows as Task[]) {
     taskMap.set(task.id, {
+      uuid: task.uuid,
       id: task.id,
       user_id: task.user_id,
       course_id: task.course_id,
@@ -267,7 +268,6 @@ export const createTask = async (
       is_completed: task.is_completed,
       created_at: task.created_at,
       updated_at: task.updated_at,
-      uuid: task.uuid,
       subtasks: [],
     });
   }
@@ -339,6 +339,7 @@ export const createTaskByTeacher = async (
 
   const response = {
     ...{
+      uuid: taskData.uuid,
       id: taskId,
       user_id: userId,
       course_id: courseId,
