@@ -396,7 +396,7 @@ export const createTaskByTeacher = async (
     const task_uuid = randomUUID();
     const [newTask]: any = await db.query(taskQuery, [
       task_uuid,
-      userId,
+      studentId,
       courseId,
       taskData.title,
       taskData.description,
