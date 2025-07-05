@@ -1,0 +1,37 @@
+@host = http://localhost:3000
+
+### Actualizar una tarea
+PUT {{host}}/api/tasks/52682f3e-0dc8-45d7-b7f0-bb6d1660675f
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX3V1aWQiOiJkMWNlZWY5NC00YzFmLTExZjAtYmQwYi1jMjRmNDY3MTY1YTciLCJlbWFpbF9jb25maXJtZWQiOjEsInJvbGUiOiJ0ZWFjaGVyIiwiaWF0IjoxNzUxNjYyNTIwfQ.9jeOB92LtqqZ9QIz5vHA_tEq-EbuTmhI6KA3LcrSGfY
+
+{
+  "title": "Nuevo título de la tarea",
+  "description": "Descripción actualizada de la tarea",
+  "due_date": "2024-06-30",
+  "time_start": "09:30:00",
+  "time_end": "11:30:00",
+  "category": "custom",
+  "is_urgent": false,
+  "is_important": true,
+  "is_completed": true,
+  "subtasks": [{"uuid": "subtask-uuid-1", "title": "Subtarea 1", "is_completed": true},
+               {"uuid": "subtask-uuid-2", "title": "Subtarea 2", "is_completed": false}]
+}
+
+### Crear una tarea
+POST {{host}}/api/tasks
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX3V1aWQiOiJkMWNlZWY5NC00YzFmLTExZjAtYmQwYi1jMjRmNDY3MTY1YTciLCJlbWFpbF9jb25maXJtZWQiOjEsInJvbGUiOiJ0ZWFjaGVyIiwiaWF0IjoxNzUxNjYyNTIwfQ.9jeOB92LtqqZ9QIz5vHA_tEq-EbuTmhI6KA3LcrSGfY
+
+{
+  "title": "Creando tarea con subtareas",
+  "description": "Descripción subtareas funcionando correctamente",
+  "due_date": "2024-06-30",
+  "time_start": "09:30:00",
+  "time_end": "11:30:00",
+  "category": "custom",
+  "is_urgent": false,
+  "is_important": true,
+  "subtasks": ["Subtarea 1","Subtarea 2"]
+}
