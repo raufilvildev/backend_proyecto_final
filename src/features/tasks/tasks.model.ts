@@ -412,30 +412,62 @@ export const updateTask = async (
     task_uuid,
   ]);
 
-  if (Array.isArray(subtasks) && subtasks.length > 0) {
-    for (const subtask of subtasks) {
-      let subtask_completed = subtask.is_completed === true ? 1 : 0;
-      await db.query(updateSubtasksQuery, [
-        subtask.title,
-        subtask_completed,
-        subtask.uuid,
-      ]);
-    }
-  }
-
   const [taskRows]: any = await db.query(`SELECT * FROM tasks WHERE uuid = ?`, [
     task_uuid,
   ]);
   const task = taskRows[0];
+  if (!task) throw new Error("Task not found");
 
-  const [updateSubtasks]: any = await db.query(
+  const [existingSubtasks]: any = await db.query(
+    `SELECT subtasks.uuid FROM subtasks LEFT JOIN tasks on subtasks.task_id = tasks.id WHERE tasks.uuid = ?`,
+    [task_uuid]
+  );
+
+  const existingUuids = existingSubtasks.map((st: any) => st.uuid);
+  const receivedUuids = Array.isArray(subtasks)
+    ? subtasks.map((st: any) => st.uuid)
+    : [];
+
+  for (const uuid of existingUuids) {
+    if (!receivedUuids.includes(uuid)) {
+      await db.query(`DELETE FROM subtasks WHERE uuid = ?`, [uuid]);
+    }
+  }
+
+  if (Array.isArray(subtasks) && subtasks.length > 0) {
+    for (const subtask of subtasks) {
+      let subtask_completed = subtask.is_completed === true ? 1 : 0;
+      if (existingUuids.includes(subtask.uuid)) {
+        // Update si existe
+        await db.query(updateSubtasksQuery, [
+          subtask.title,
+          subtask_completed,
+          subtask.uuid,
+        ]);
+      } else {
+        // Insert si no existe
+        const insertSubtaskQuery = `
+          INSERT INTO subtasks (uuid, task_id, title, is_completed, created_at, updated_at)
+          VALUES (?, ?, ?, ?, NOW(), NOW())
+        `;
+        await db.query(insertSubtaskQuery, [
+          randomUUID(),
+          task.id,
+          subtask.title,
+          subtask_completed,
+        ]);
+      }
+    }
+  }
+
+  const [updatedSubtasks]: any = await db.query(
     `SELECT * FROM subtasks WHERE task_id = ?`,
     [task.id]
   );
 
   return {
     ...task,
-    updateSubtasks,
+    subtasks: updatedSubtasks,
   };
 };
 
