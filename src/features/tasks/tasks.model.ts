@@ -189,16 +189,18 @@ export const selectAllTasksFiltered = async (
 
 export const selectAllTasksByCourseUuid = async (
   course_uuid: string,
-  filter: "today" | "week" | "month"
+  filter?: "today" | "week" | "month"
 ) => {
-  let filter_clause = {
-    today: "AND due_date <= CURDATE()",
-    week: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 7 DAY) OR due_date IS NULL)",
-    month:
-      "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)",
-  };
-
-  const filter_sql = filter_clause[filter];
+  let filter_sql = "";
+  
+  if (filter) {
+    const filter_clause = {
+      today: "AND due_date <= CURDATE()",
+      week: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 7 DAY) OR due_date IS NULL)",
+      month: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)",
+    };
+    filter_sql = filter_clause[filter];
+  }
 
   const selectAllTasksQuery = `SELECT t.id,
     t.user_id,

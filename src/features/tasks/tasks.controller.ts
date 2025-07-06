@@ -29,22 +29,28 @@ export const getAllTasksByCourseUUID = async (
   try {
     const { courseuuid } = req.params;
     const user = req.user?.id as number;
-    let { filter } = req.query;
+    const filter = req.query.filter as "today" | "week" | "month" | undefined;
 
-    if (!(filter === "today" || filter === "week" || filter === "month")) {
-      res.status(400).json({ error: "Filter debe ser today, week or month" });
+    // Validar que el usuario existe
+    if (!user) {
+      res.status(401).json({ error: "Usuario no autenticado" });
+      return;
+    }
+
+    // Validar el filtro si existe
+    if (filter && !["today", "week", "month"].includes(filter)) {
+      res.status(400).json({ error: "Filter debe ser today, week o month" });
       return;
     }
 
     if (!courseuuid) {
       // Utilizar método get all (todas las del usuario, no del curso)
-      const tasks = await Tasks.selectAllTasksFiltered(user, filter);
+      const tasks = await Tasks.selectAllTasksFiltered(user, filter as "today" | "week" | "month");
       res.status(200).json(tasks);
       return;
     }
 
     const tasks = await Tasks.selectAllTasksByCourseUuid(courseuuid, filter);
-
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({
