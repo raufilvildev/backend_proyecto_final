@@ -188,16 +188,18 @@ export const selectAllTasksFiltered = async (
 };
 
 export const selectAllTasksByCourseUuid = async (
+  user: number,
   course_uuid: string,
   filter?: "today" | "week" | "month"
 ) => {
   let filter_sql = "";
-  
+
   if (filter) {
     const filter_clause = {
       today: "AND due_date <= CURDATE()",
       week: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 7 DAY) OR due_date IS NULL)",
-      month: "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)",
+      month:
+        "AND ((due_date >= CURDATE() AND due_date < CURDATE() + INTERVAL 30 DAY) OR due_date IS NULL)",
     };
     filter_sql = filter_clause[filter];
   }
@@ -220,7 +222,7 @@ export const selectAllTasksByCourseUuid = async (
     FROM tasks t
     LEFT JOIN subtasks st on t.id = st.task_id 
     LEFT JOIN courses c ON t.course_id = c.id
-    WHERE c.uuid = ? ${filter_sql}
+    WHERE c.uuid = ? ${filter_sql} AND t.user_id = ?
     ORDER BY due_date ASC`;
 
   const selectAllSubTasksQuery = `
@@ -233,11 +235,11 @@ export const selectAllTasksByCourseUuid = async (
     FROM subtasks st
     LEFT JOIN tasks t on t.id = st.task_id
     LEFT JOIN courses c ON t.course_id = c.id
-    WHERE c.uuid = ?`;
+    WHERE c.uuid = ? AND t.user_id = ?`;
 
   const [[tasksResult], [subtasksResult]] = await Promise.all([
-    db.query(selectAllTasksQuery, [course_uuid]),
-    db.query(selectAllSubTasksQuery, [course_uuid]),
+    db.query(selectAllTasksQuery, [course_uuid, user]),
+    db.query(selectAllSubTasksQuery, [course_uuid, user]),
   ]);
 
   const taskMap = new Map<number, Task>();
@@ -392,6 +394,23 @@ export const createTaskByTeacher = async (
     VALUES (?,?,?,0,NOW(),NOW())`;
 
   let tasksResult = [];
+
+  const teacher_task_uuid = randomUUID();
+  const [task_teacher]: any = await db.query(taskQuery, [
+    teacher_task_uuid,
+    userId,
+    courseId,
+    taskData.title,
+    taskData.description,
+    taskData.due_date,
+    taskData.time_start,
+    taskData.time_end,
+    taskData.category,
+    is_important,
+    is_urgent,
+  ]);
+
+  tasksResult.push(task_teacher);
 
   for (const student of enrollmentsResult) {
     const studentId = student.student_id;

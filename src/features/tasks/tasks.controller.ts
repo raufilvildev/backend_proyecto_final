@@ -50,7 +50,7 @@ export const getAllTasksByCourseUUID = async (
       return;
     }
 
-    const tasks = await Tasks.selectAllTasksByCourseUuid(courseuuid, filter);
+    const tasks = await Tasks.selectAllTasksByCourseUuid(user, courseuuid, filter);
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({
